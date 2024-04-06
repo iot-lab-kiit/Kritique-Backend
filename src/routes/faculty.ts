@@ -14,5 +14,5 @@ router.get("/:id", getFacultyById);
 router.get("/:name", getFacultyByName);
 router.post("/", createFaculty);
 router.put("/:id", updateFaculty);
-router.delete("/", deleteFaculty);
+router.delete("/:id", deleteFaculty);
 export default router;

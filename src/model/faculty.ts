@@ -5,9 +5,9 @@ const facultySchema = new mongoose.Schema(
     name: { type: String, required: true },
     experience: { type: String },
     photoUrl: { type: String },
-    avgRating: { type: Number },
-    totalRatings: { type: Number },
-    reviewList: { type: Schema.Types.ObjectId, ref: "Review", required: true },
+    avgRating: { type: Number, default: 0 },
+    totalRatings: { type: Number, default: 0 },
+    reviewList: { type: Schema.Types.ObjectId, ref: "Review" },
   },
   { timestamps: true }
 );

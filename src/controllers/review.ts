@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import FacultyModel from "../model/faculty";
 import Review from "../model/review";
 import UserModel from "../model/user";
-import { review, reviewParams } from "../@types/review";
+import { review, reviewQuery } from "../@types/review";
 
 export const fetchFacultyReviews = async (req: Request, res: Response) => {
   try {
-    const { facultyId, start, count }: reviewParams =
-      req.query as unknown as reviewParams;
+    const { start, count } = req.query as unknown as reviewQuery;
+    const facultyId = req.params.facultyid;
     const faculty = await FacultyModel.findById(facultyId);
 
     if (!faculty) {

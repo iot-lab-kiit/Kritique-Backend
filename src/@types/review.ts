@@ -1,4 +1,4 @@
-export interface reviewParams {
+export interface reviewQuery {
   start: number;
   count?: number;
   facultyId : string;
