@@ -6,8 +6,7 @@ import { review, reviewParams } from "../@types/review";
 
 export const fetchFacultyReviews = async (req: Request, res: Response) => {
   try {
-    const { start, count }: reviewParams = req.body;
-    const facultyId = req.query.facultyId as string;
+    const { start, count, facultyId }: reviewParams = req.query as unknown as reviewParams;
     const faculty = await Faculty.findById(facultyId);
 
     if (!faculty) {

@@ -1,6 +1,7 @@
 export interface reviewParams {
   start: number;
   count?: number;
+  facultyId : string;
 }
 
 export interface review {
