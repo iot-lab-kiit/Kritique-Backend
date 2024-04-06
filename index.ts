@@ -4,7 +4,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import compress from "compression";
 import morgan from "morgan";
-import reviewRoutes from "./src/routes/review.ts";
+import reviewRoutes from "./src/routes/review";
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 3300;

@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import Faculty from "../models/faculty.ts";
-import Review from "../models/review.ts";
-import User from "../models/user.ts";
-import { review, reviewParams } from "../@types/review.ts";
+import Faculty from "../models/faculty";
+import Review from "../models/review";
+import User from "../models/user";
+import { review, reviewParams } from "../@types/review";
 
 export const fetchFacultyReviews = async (req: Request, res: Response) => {
   try {
@@ -51,12 +51,12 @@ export const createReview = async (req: Request, res: Response) => {
 
     const user = await User.findById(createdBy);
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     const faculty = await Faculty.findById(createdFor);
     if (!faculty) {
-      return res.status(400).json({ message: "Faculty not found" });
+      return res.status(404).json({ message: "Faculty not found" });
     }
 
     const review = new Review({
