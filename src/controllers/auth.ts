@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { firebaseAuth } from "../lib/firebase-admin";
 import UserModel from "../model/user";
+import { UserQuery } from "../@types/user";
 
 export const authorizeUser = async (req: Request, res: Response) => {
   try {
-    const { token, role } = req.body;
+    const { token, role }: UserQuery = req.body;
     if (!token) return res.send(400).send("Token is required");
     const user = await firebaseAuth.verifyIdToken(token);
     const record = await firebaseAuth.getUser(user.uid);

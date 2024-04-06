@@ -2,7 +2,6 @@ import mongoose, { Schema } from "mongoose";
 
 const reviewSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     createdFor: { type: Schema.Types.ObjectId, ref: "Faculty", required: true },
     rating: {
