@@ -4,7 +4,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import compress from "compression";
 import morgan from "morgan";
-
+import reviewRoutes from "./src/routes/review.ts";
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 3300;
@@ -17,8 +17,10 @@ app.use(cors(corsOptions));
 app.use(compress());
 app.use(morgan("dev"));
 
-app.use((req: Request, res: Response) => res.send("Hello World"));
-
+app.use((req: Request, res: Response) =>
+  res.send("This is Faculty Review API")
+);
+app.use("/reviews", reviewRoutes);
 mongoose
   .connect(mongo)
   .then(() =>
