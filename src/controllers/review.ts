@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
-import Faculty from "../models/faculty";
-import Review from "../models/review";
-import User from "../models/user";
+import FacultyModel from "../model/faculty";
+import Review from "../model/review";
+import UserModel from "../model/user";
 import { review, reviewParams } from "../@types/review";
 
 export const fetchFacultyReviews = async (req: Request, res: Response) => {
   try {
-    const { start, count, facultyId }: reviewParams = req.query as unknown as reviewParams;
-    const faculty = await Faculty.findById(facultyId);
+    const { facultyId, start, count }: reviewParams =
+      req.query as unknown as reviewParams;
+    const faculty = await FacultyModel.findById(facultyId);
 
     if (!faculty) {
       return res.status(404).json({ message: "Faculty not found" });
@@ -46,20 +47,19 @@ export const fetchFacultyReviews = async (req: Request, res: Response) => {
 
 export const createReview = async (req: Request, res: Response) => {
   try {
-    const { id, createdBy, createdFor, rating, feedback }: review = req.body;
+    const { createdBy, createdFor, rating, feedback }: review = req.body;
 
-    const user = await User.findById(createdBy);
+    const user = await UserModel.findById(createdBy);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const faculty = await Faculty.findById(createdFor);
+    const faculty = await FacultyModel.findById(createdFor);
     if (!faculty) {
       return res.status(404).json({ message: "Faculty not found" });
     }
 
     const review = new Review({
-      id,
       createdBy,
       createdFor,
       rating,
@@ -77,7 +77,8 @@ export const createReview = async (req: Request, res: Response) => {
 
 export const updateReview = async (req: Request, res: Response) => {
   try {
-    const { id, rating, feedback }: review = req.body;
+    const id = req.params.reviewId;
+    const { rating, feedback }: review = req.body;
     const review = await Review.findById(id);
     if (!review) {
       return res.status(404).json({ message: "Review not found" });
@@ -103,7 +104,7 @@ export const updateReview = async (req: Request, res: Response) => {
 
 export const deleteReview = async (req: Request, res: Response) => {
   try {
-    const { id } = req.body;
+    const { id } = req.params;
     const review = await Review.findById(id);
     if (!review) {
       return res.status(404).json({ message: "Review not found" });
