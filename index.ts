@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -12,11 +12,14 @@ const mongo =
   process.env.MONGO_URI || "mongodb://localhost:27017/teacher-review";
 const corsOptions = { origin: "*", optionssuccessStatus: 200 };
 
+import userRoutes from "./src/routes/user";
+
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(compress());
 app.use(morgan("dev"));
 
+app.use("/auth", userRoutes);
 app.use((req: Request, res: Response) => res.send("Hello World"));
 
 mongoose
