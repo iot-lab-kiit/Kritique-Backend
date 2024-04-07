@@ -12,7 +12,7 @@ export const getFacultyList = async (req: Request, res: Response) => {
 export const getFacultyByName = async (req: Request, res: Response) => {
   try {
     const { name } = req.params;
-    const faculty = await FacultyModel.findOne({ name });
+    const faculty = await FacultyModel.findOne({ name: name }).exec();
     if (!faculty) {
       return res.status(404).json({ message: "Faculty not found" });
     }
@@ -74,6 +74,6 @@ export const createFaculty = async (req: Request, res: Response) => {
     await faculty.save();
     res.status(201).json({ message: "Faculty created successfully", faculty });
   } catch (err) {
-    res.status(500).send("Internal Server Error");
+    res.status(500).send((err as Error).message);
   }
 };

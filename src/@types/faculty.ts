@@ -1,5 +1,5 @@
 export interface Faculty {
-  id: string;
+  id?: string;
   name: string;
   experience?: string;
   photoUrl?: string;
