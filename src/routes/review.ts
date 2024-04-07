@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 router.get("/", getAllReviews);
-router.get("/:facultyid", fetchFacultyReviews);
+router.get("/:facultyId", fetchFacultyReviews);
 router.post("/", createReview);
 router.put("/:reviewId", updateReview);
 router.delete("/", deleteReview);
