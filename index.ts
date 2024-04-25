@@ -22,8 +22,8 @@ app.use(compress());
 app.use(morgan("dev"));
 
 app.use("/auth", userRoutes);
-app.use("/reviews", authToken, reviewRoutes);
-app.use("/faculty", authToken, facultyRoutes);
+app.use("/reviews", reviewRoutes);
+app.use("/faculty", facultyRoutes);
 
 app.use((req: Request, res: Response) =>
   res.send("Teacher Review APi. Coded with ❤️ by IoT Web Team.")

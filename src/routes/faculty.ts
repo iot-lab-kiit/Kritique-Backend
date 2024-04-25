@@ -1,17 +1,15 @@
 import express from "express";
 import {
-  getFacultyList,
+  getFaculty,
   getFacultyById,
-  getFacultyByName,
   updateFaculty,
   deleteFaculty,
   createFaculty,
 } from "../controllers/faculty";
 const router = express.Router();
 
-router.get("/", getFacultyList);
+router.get("/", getFaculty);
 router.get("/:id", getFacultyById);
-router.get("/:name", getFacultyByName);
 router.post("/", createFaculty);
 router.put("/:id", updateFaculty);
 router.delete("/:id", deleteFaculty);

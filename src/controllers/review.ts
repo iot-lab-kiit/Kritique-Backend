@@ -7,7 +7,7 @@ import { review, reviewQuery } from "../@types/review";
 export const fetchFacultyReviews = async (req: Request, res: Response) => {
   try {
     const { start, count } = req.query as unknown as reviewQuery;
-    const facultyId = req.params.facultyid;
+    const facultyId = req.params.facultyId;
     const faculty = await FacultyModel.findById(facultyId);
     if (!faculty) return res.status(404).json({ message: "Faculty not found" });
     const totalCount = await Review.countDocuments({
