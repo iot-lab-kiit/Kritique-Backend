@@ -28,7 +28,9 @@ export const getFaculty = async (req: Request, res: Response) => {
 export const getFacultyById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    if (!id) return res.status(400).json({ message: "Id is required" });
+    console.log(id);
+    if (!id || id === ":id")
+      return res.status(400).json({ message: "Id is required" });
     const faculty = await FacultyModel.findById(id);
     if (!faculty) return res.status(404).json({ message: "Faculty not found" });
     res.status(200).json(faculty);

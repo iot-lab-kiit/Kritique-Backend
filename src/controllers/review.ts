@@ -4,6 +4,7 @@ import Review from "../model/review";
 import UserModel from "../model/user";
 import { review, reviewQuery } from "../@types/review";
 
+// TODO : Validated Status
 export const fetchFacultyReviews = async (req: Request, res: Response) => {
   try {
     const { start, count } = req.query as unknown as reviewQuery;
@@ -18,22 +19,12 @@ export const fetchFacultyReviews = async (req: Request, res: Response) => {
       return res.status(200).json({ message: "No reviews found" });
 
     let reviews;
-    if (count) {
-      reviews = await Review.find({ createdFor: facultyId })
-        .skip(start)
-        .limit(count)
-        .populate("createdFor");
-    } else {
-      reviews = await Review.find({ createdFor: facultyId })
-        .skip(start)
-        .limit(20)
-        .populate("createdFor");
-    }
 
-    res.json({
-      faculty,
-      reviews: reviews,
-    });
+    reviews = await Review.find({ createdFor: facultyId })
+      .skip(start - 1 ? start - 1 : 0)
+      .limit(count ? count : 20);
+
+    res.json({ faculty, reviews: reviews });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -55,11 +46,8 @@ export const createReview = async (req: Request, res: Response) => {
       createdFor,
       rating,
       feedback,
-      status: "validated",
     });
-
     await review.save();
-
     res.status(200).json({ message: "Review created successfully", review });
   } catch (error) {
     console.log(error);
@@ -79,17 +67,15 @@ export const updateReview = async (req: Request, res: Response) => {
     if (!review) return res.status(404).json({ message: "Review not found" });
 
     if (rating) {
-      if (rating >= 1.0 && rating <= 5.0) {
-        review.rating = rating;
-      } else
-        res
+      if (rating >= 1.0 && rating <= 5.0) review.rating = rating;
+      else
+        return res
           .status(400)
           .json({ message: "Rating should be between 1.0 and 5.0" });
     }
 
-    if (feedback) {
-      review.feedback = feedback;
-    }
+    if (feedback) review.feedback = feedback;
+
     await review.save();
     res.status(200).json({ message: "Review updated successfully", review });
   } catch (error) {

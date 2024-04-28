@@ -13,5 +13,5 @@ router.get("/", getAllReviews);
 router.get("/:facultyId", fetchFacultyReviews);
 router.post("/", createReview);
 router.put("/:reviewId", updateReview);
-router.delete("/", deleteReview);
+router.delete("/:id", deleteReview);
 export default router;

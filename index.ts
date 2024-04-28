@@ -14,7 +14,7 @@ const corsOptions = { origin: "*", optionssuccessStatus: 200 };
 import userRoutes from "./src/routes/user";
 import reviewRoutes from "./src/routes/review";
 import facultyRoutes from "./src/routes/faculty";
-import { authToken } from "./src/middleware/auth";
+// import { authToken } from "./src/middleware/auth";   // Use during PROD
 
 app.use(express.json());
 app.use(cors(corsOptions));

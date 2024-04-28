@@ -18,7 +18,7 @@ const reviewSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["validated", "not validated"],
-      default: "validated",
+      default: "not validated",
     },
   },
   { timestamps: true }
