@@ -108,3 +108,33 @@ export const getAllReviews = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const renderCreateReview = async (req: Request, res: Response) => {
+  res.render("review/createReview");
+};
+
+export const renderUpdateReview = async (req: Request, res: Response) => {
+  const reviewId = req.params.id;
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    res.status(404).json({ message: "Review not found" });
+  }
+  res.render("review/updateReview", { review });
+};
+
+export const renderGetAllReviews = async (req: Request, res: Response) => {
+  const reviews = await Review.find();
+  if (!reviews) {
+    res.status(404).json({ message: "Review not found" });
+  }
+  res.render("review/reviewList", { reviews });
+};
+
+export const renderFacultyReviews = async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const reviews = await Review.find({ createdFor: id });
+  if (!reviews) {
+    res.status(404).json({ message: "Review not found" });
+  }
+  res.render("review/reviewList", { reviews });
+};
