@@ -4,6 +4,9 @@ import cors from "cors";
 import mongoose from "mongoose";
 import compress from "compression";
 import morgan from "morgan";
+import path from "path";
+import methodOverride from "method-override";
+
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 3300;
@@ -16,6 +19,11 @@ import reviewRoutes from "./src/routes/review";
 import facultyRoutes from "./src/routes/faculty";
 // import { authToken } from "./src/middleware/auth";   // Use during PROD
 
+app.use(express.urlencoded({ extended: true }));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "/src/views"));
+
+app.use(methodOverride("_method"));
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(compress());
