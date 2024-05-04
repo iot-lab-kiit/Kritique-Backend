@@ -59,10 +59,16 @@
             width: 100%; /* Ensure the buttons span the entire width */
             margin-top: 20px; /* Added margin */
         }
+        h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 20px;
+      }
     </style>
 </head>
 <body>
     <div class="container">
+        <h1>Update Review</h1>
         <form id="updateForm" action="/reviews/<%= review._id %>?_method=PUT" method="POST">
             <label for="createdBy">Created By (User ID):</label>
             <input type="text" id="createdBy" name="createdBy" value="<%= review.createdBy %>" required />
@@ -71,7 +77,7 @@
             <input type="text" id="createdFor" name="createdFor" value="<%= review.createdFor %>" required />
             <br />
             <label for="rating">Rating (1.0 - 5.0):</label>
-            <input type="number" id="rating" name="rating" min="1.0" max="5.0" step="0.1" value="<%= review.rating %>" required />
+            <input type="number" id="rating" name="rating" min="1.0" max="5.0" step="1.0" value="<%= review.rating %>" required />
             <br />
             <label for="feedback">Feedback:</label>
             <textarea id="feedback" name="feedback"><%= review.feedback %></textarea>
