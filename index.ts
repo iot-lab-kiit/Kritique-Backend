@@ -19,12 +19,10 @@ import facultyRoutes from "./src/routes/faculty";
 // import { authToken } from "./src/middleware/auth";   // Use during PROD
 
 app.use(express.urlencoded({extended: true}));
-
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "/src/views"));
 
 app.use(methodOverride("_method"));
-
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(compress());
