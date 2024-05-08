@@ -51,7 +51,7 @@ export const createReview = async (req: Request, res: Response) => {
     res.status(200).json({ message: "Review created successfully", review });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Error creating review", error });
+    res.status(500).json({ message: "Error creating review" });
   }
 };
 
@@ -80,7 +80,7 @@ export const updateReview = async (req: Request, res: Response) => {
     res.status(200).json({ message: "Review updated successfully", review });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Error updating review", error });
+    res.status(500).json({ message: "Error updating review" });
   }
 };
 
@@ -95,7 +95,7 @@ export const deleteReview = async (req: Request, res: Response) => {
     res.status(200).json({ message: "Review deleted successfully" });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Error deleting review", error });
+    res.status(500).json({ message: "Error deleting review" });
   }
 };
 
@@ -114,27 +114,42 @@ export const renderCreateReview = async (req: Request, res: Response) => {
 };
 
 export const renderUpdateReview = async (req: Request, res: Response) => {
-  const reviewId = req.params.id;
-  const review = await Review.findById(reviewId);
-  if (!review) {
-    res.status(404).json({ message: "Review not found" });
+  try {
+    const reviewId = req.params.id;
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      res.status(404).json({ message: "Review not found" });
+    }
+    res.render("review/updateReview", { review });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-  res.render("review/updateReview", { review });
 };
 
 export const renderGetAllReviews = async (req: Request, res: Response) => {
-  const reviews = await Review.find();
-  if (!reviews) {
-    res.status(404).json({ message: "Review not found" });
+  try {
+    const reviews = await Review.find();
+    if (!reviews) {
+      res.status(404).json({ message: "Review not found" });
+    }
+    res.render("review/reviewList", { reviews });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-  res.render("review/reviewList", { reviews });
 };
 
 export const renderFacultyReviews = async (req: Request, res: Response) => {
-  const id = req.params.id;
-  const reviews = await Review.find({ createdFor: id });
-  if (!reviews) {
-    res.status(404).json({ message: "Review not found" });
+  try {
+    const id = req.params.id;
+    const reviews = await Review.find({ createdFor: id });
+    if (!reviews) {
+      res.status(404).json({ message: "Review not found" });
+    }
+    res.render("review/reviewList", { reviews });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-  res.render("review/reviewList", { reviews });
 };
