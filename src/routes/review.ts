@@ -8,20 +8,20 @@ import {
   renderCreateReview,
   renderUpdateReview,
   renderGetAllReviews,
-  renderFacultyReviews
+  renderFacultyReviews,
 } from "../controllers/review";
 
 const router = express.Router();
+
+router.get("/all", renderGetAllReviews);
+router.get("/create", renderCreateReview);
+router.get("/:id/faculty", renderFacultyReviews);
+router.get("/:id/update", renderUpdateReview);
 
 router.get("/", getAllReviews);
 router.post("/", createReview);
 router.get("/:facultyId", fetchFacultyReviews);
 router.put("/:reviewId", updateReview);
 router.delete("/:id", deleteReview);
-
-router.get('/all',renderGetAllReviews);
-router.get('/create',renderCreateReview);
-router.get("/:id/faculty", renderFacultyReviews);
-router.get("/:id/update", renderUpdateReview);
 
 export default router;
