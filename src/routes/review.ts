@@ -14,16 +14,14 @@ import {
 const router = express.Router();
 
 router.get("/", getAllReviews);
-router.get('/allReviews',renderGetAllReviews);
-
-router.get('/create',renderCreateReview);
 router.post("/", createReview);
-
 router.get("/:facultyId", fetchFacultyReviews);
-router.get("/:id/facultyReview", renderFacultyReviews);
-
-router.get("/:id/update", renderUpdateReview);
 router.put("/:reviewId", updateReview);
-
 router.delete("/:id", deleteReview);
+
+router.get('/all',renderGetAllReviews);
+router.get('/create',renderCreateReview);
+router.get("/:id/faculty", renderFacultyReviews);
+router.get("/:id/update", renderUpdateReview);
+
 export default router;
