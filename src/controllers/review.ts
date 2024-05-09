@@ -4,6 +4,115 @@ import Review from "../model/review";
 import UserModel from "../model/user";
 import { review, reviewQuery } from "../@types/review";
 
+export const getAllReview = async () => {
+  const review = await Review.find();
+  if (!review) {
+    throw new Error("Review not found");
+  }
+  return review;
+};
+
+export const getReviewById = async (id: string) => {
+  if (!id) {
+    throw new Error("Please provide a valid Id");
+  }
+  const review = await Review.findById(id);
+  if (!review) {
+    throw new Error("Review not found by given Id");
+  }
+  return review;
+};
+
+export const getUserById = async (id: string) => {
+  if (!id) {
+    throw new Error("Please provide a valid Id");
+  }
+  const user = await UserModel.findById(id);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  return user;
+};
+export const getFacultyById = async (id: string) => {
+  if (!id) {
+    throw new Error("Please provide a valid Id");
+  }
+  const user = await FacultyModel.findById(id);
+  if (!user) {
+    throw new Error("Faculty not found");
+  }
+  return user;
+};
+
+export const getReviewByFacultyId = async (
+  id: string,
+  start: number,
+  count: number | undefined
+) => {
+  if (!id) {
+    throw new Error("Please provide a valid Id");
+  }
+  if (!start || !count) {
+    throw new Error("Please provide a valid start and count");
+  }
+  const reviews = await Review.find({ createdFor: id })
+    .skip(start - 1 ? start - 1 : 0)
+    .limit(count ? count : 20);
+  if (!reviews) {
+    throw new Error("no Reviews found for that faculty");
+  }
+  return reviews;
+};
+
+export const getTotalReviewByFacultyId = async (id: string) => {
+  if (!id) {
+    throw new Error("Please provide a valid Id");
+  }
+  const totalCount = await Review.countDocuments({ createdFor: id });
+  if (!totalCount) {
+    throw new Error("No review documents found ");
+  }
+  return totalCount;
+};
+
+export const createNewReview = async (createdBy:string, createdFor:string, rating:number, feedback:string) => {
+  if (!createdBy || !createdFor || !feedback || !rating) {
+    throw new Error("Please Provide a valid details");
+  }
+  const newReview = new Review({
+    createdBy,
+    createdFor,
+    rating,
+    feedback,
+  });
+  await newReview.save();
+  return newReview;
+};
+
+export const updateAReview = async (id: string, review: any) => {
+  if (!id) {
+    throw new Error("Please provide the correct id");
+  }
+  const newReview = await Review.findByIdAndUpdate(
+    id,
+    {
+      rating: review.rating,
+      feedback: review.feedback,
+    },
+    {
+      new: true,
+    }
+  );
+  return newReview;
+};
+
+export const deleteAReview = async (id: string) => {
+  if (!id) {
+    throw new Error("Please provide the valid Id");
+  }
+  await Review.findByIdAndDelete(id);
+};
+
 // TODO : Validated Status
 export const fetchFacultyReviews = async (req: Request, res: Response) => {
   try {
@@ -108,7 +217,7 @@ export const getAllReviews = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
+// render Controller Function
 export const renderCreateReview = async (req: Request, res: Response) => {
   res.render("review/createReview");
 };
