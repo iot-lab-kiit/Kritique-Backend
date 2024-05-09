@@ -2,11 +2,6 @@ import express from "express";
 import { Request, Response } from "express";
 import { review, reviewQuery } from "../@types/review";
 import {
-  createReview,
-  fetchFacultyReviews,
-  getAllReviews,
-  deleteReview,
-  updateReview,
   renderCreateReview,
   renderUpdateReview,
   renderGetAllReviews,
@@ -139,11 +134,4 @@ router.delete("/:id", async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error deleting review" });
   }
 });
-
-// router.get("/", getAllReviews);
-// router.post("/", createReview);
-// router.get("/:facultyId", fetchFacultyReviews);
-// router.put("/:reviewId", updateReview);
-// router.delete("/:id", deleteReview);
-
 export default router;
