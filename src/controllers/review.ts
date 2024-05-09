@@ -113,6 +113,20 @@ export const deleteAReview = async (id: string) => {
   await Review.findByIdAndDelete(id);
 };
 
+export const updateAFaculty = async (id: string, faculty: any) => {
+  if (!id) {
+    throw new Error("Please provide a valid id");
+  }
+  const updatedFaculty = await FacultyModel.findByIdAndUpdate(id, {
+    avgRating: faculty.avgRating,
+    totalRatings: faculty.totalRatings,
+    reviewList: faculty.reviewList,
+  },
+  {returnOriginal:false}
+);
+  return updatedFaculty
+};
+
 // TODO : Validated Status
 export const fetchFacultyReviews = async (req: Request, res: Response) => {
   try {
