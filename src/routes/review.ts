@@ -20,6 +20,7 @@ import {
   createNewReview,
   updateAReview,
   deleteAReview,
+  updateAFaculty,
 } from "../controllers/review";
 import { messaging } from "firebase-admin";
 
@@ -46,18 +47,25 @@ router.post("/", async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ message: "User not found" });
     const faculty = await getFacultyById(createdFor);
     if (!faculty) return res.status(404).json({ message: "Faculty not found" });
-    let newReview
-    if (typeof rating === "number" && typeof feedback === "string") {
-      newReview = await createNewReview(
-        createdBy,
-        createdFor,
-        rating,
-        feedback
-      );
-    }else{
-      res.status(401).json({ message: "Please provide a valid rating or Feedback" });
-    }
-    res.status(200).json({ message: "Review created successfully", newReview });
+    const newReview = await createNewReview(
+      createdBy,
+      createdFor,
+      rating,
+      feedback
+    );
+
+    let newrating = newReview.rating;
+    let total = faculty.totalRatings;
+    let avgRating = faculty.avgRating;
+    let newavg = (avgRating * total + newrating) / (total + 1);
+
+    faculty.avgRating = newavg;
+    faculty.reviewList.push(newReview._id);
+    faculty.totalRatings = total + 1;
+    const updatedFaculty = await updateAFaculty(createdFor, faculty);
+    res.status(200).json({
+      message: "Review created successfully",
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error creating review" });
@@ -89,6 +97,7 @@ router.put("/:reviewId", async (req: Request, res: Response) => {
         .json({ message: "ID or Rating or feedback is required" });
     const review = await getReviewById(id);
     if (!review) return res.status(404).json({ message: "Review not found" });
+    let oldRating = review.rating;
     if (rating) {
       if (rating >= 1.0 && rating <= 5.0) review.rating = rating;
       else
@@ -98,7 +107,20 @@ router.put("/:reviewId", async (req: Request, res: Response) => {
     }
     if (feedback) review.feedback = feedback;
     const newReview = await updateAReview(id, review);
-    res.status(200).json({ message: "Review Updated Successfully" });
+    const facId = review.createdFor.toString();
+    const faculty = await getFacultyById(facId);
+    if (rating) {
+      let total = faculty.totalRatings;
+      let avg = faculty.avgRating;
+      let newavg = (avg * total - oldRating + rating) / total;
+      faculty.avgRating = newavg;
+    }
+    const updatedFaculty = await updateAFaculty(facId, faculty);
+    res
+      .status(200)
+      .json({
+        message: "Review Updated Successfully",
+      });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
