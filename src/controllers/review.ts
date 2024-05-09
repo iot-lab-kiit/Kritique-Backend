@@ -100,7 +100,7 @@ export const updateAReview = async (id: string, review: any) => {
       feedback: review.feedback,
     },
     {
-      new: true,
+      timestamps: true,
     }
   );
   return newReview;
