@@ -5,12 +5,12 @@ export interface reviewQuery {
 }
 
 export interface review {
-  id: string;
+  id?: string;
   createdBy: string;
   createdFor: string;
-  rating?: number;
-  feedback?: string;
-  status: "validated" | "not validated";
-  createdAt: Date;
-  updatedAt: Date;
+  rating: number;
+  feedback: string;
+  status?: "validated" | "not validated";
+  createdAt?: Date;
+  updatedAt?: Date;
 }
