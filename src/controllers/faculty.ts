@@ -4,7 +4,7 @@ import { Faculty } from "../@types/faculty";
 
 export const getFaculty = async (req: Request, res: Response) => {
   try {
-    const facultyList = await FacultyModel.find();
+    const facultyList = await FacultyModel.find().select("-reviewList")
     if (!facultyList)
       return res.status(404).json({ message: "No records found !" });
 
