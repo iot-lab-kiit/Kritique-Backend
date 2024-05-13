@@ -57,7 +57,7 @@
     <body>
         <div class="container">
             <h1>Update Faculty Details:</h1>
-            <form method="POST" action="/faculty/<%= faculty._id %>?_method=PUT">
+            <form method="POST" action="/faculties/<%= faculty._id %>?_method=PUT">
                 <label for="name">Name:</label>
                 <input type="text" id="name" name="name" value="<%= faculty.name %>" required />
                 <br />
