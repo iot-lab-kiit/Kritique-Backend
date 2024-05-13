@@ -4,7 +4,7 @@ import {Faculty} from "../@types/faculty";
 
 export const getFaculty = async (req: Request, res: Response) => {
     try {
-        const facultyList = await FacultyModel.find();
+        const facultyList = await FacultyModel.find().select("-reviewList")
         if (!facultyList) return res.status(404).json({message: "No records found !"});
 
         const name = req.query.name as string;
@@ -15,7 +15,8 @@ export const getFaculty = async (req: Request, res: Response) => {
             res.status(200).json(faculty);
             res.json(200).render("Faculty/facultyList", {list: faculty});
         } else {
-            res.status(200).render("Faculty/facultyList", {list: facultyList});
+            //res.status(200).render("Faculty/facultyList", {list: facultyList});
+            res.status(200).json(facultyList);
         }
     } catch (err) {
         console.log(err);
@@ -29,7 +30,8 @@ export const getFacultyById = async (req: Request, res: Response) => {
         if (!id || id === ":id") return res.status(400).json({message: "Id is required"});
         const faculty = await FacultyModel.findById(id);
         if (!faculty) return res.status(404).json({message: "Faculty not found"});
-        res.status(200).render("Faculty/facultyDetails", {faculty});
+        // res.status(200).render("Faculty/facultyDetails", {faculty});
+        res.status(200).json(faculty)
     } catch (err) {
         console.log(err);
         res.status(500).send("Internal Server Error");

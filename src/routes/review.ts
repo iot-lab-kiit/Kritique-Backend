@@ -28,8 +28,9 @@ router.get("/:id/update", renderUpdateReview);
 
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const reviews = await getAllReview();
-    res.json({ reviews });
+    const { limit, skip, createdBy } = req.query as unknown as reviewQuery;
+    const reviews = await getAllReview(limit, skip, createdBy);
+    res.json(reviews);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -58,9 +59,7 @@ router.post("/", async (req: Request, res: Response) => {
     faculty.reviewList.push(newReview._id);
     faculty.totalRatings = total + 1;
     const updatedFaculty = await updateAFaculty(createdFor, faculty);
-    res.status(200).json({
-      message: "Review created successfully",
-    });
+    res.status(200).json(newReview.toJSON());
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error creating review" });
@@ -68,15 +67,25 @@ router.post("/", async (req: Request, res: Response) => {
 });
 router.get("/:facultyId", async (req: Request, res: Response) => {
   try {
-    const { start, count } = req.query as unknown as reviewQuery;
+    const { limit, skip } = req.query as unknown as reviewQuery;
     const facultyId = req.params.facultyId;
     const faculty = await getFacultyById(facultyId);
     if (!faculty) return res.status(404).json({ message: "Faculty not found" });
     const totalCount = await getTotalReviewByFacultyId(facultyId);
-    if (totalCount === 0)
-      return res.status(200).json({ message: "No reviews found" });
-    let reviews = await getReviewByFacultyId(facultyId, start, count);
-    res.json({ faculty, reviews: reviews });
+    faculty.totalRatings = totalCount;
+    let reviews = await getReviewByFacultyId(facultyId, limit, skip);
+    if (reviews) {
+      faculty.reviewList = reviews.map((review) => review._id);
+      await faculty.populate({
+        path: "reviewList",
+        populate: {
+          path: "createdBy"
+        },
+        select: ["-createdFor"],
+      });
+    }
+
+    res.json(faculty.toJSON());
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -111,11 +120,9 @@ router.put("/:reviewId", async (req: Request, res: Response) => {
       faculty.avgRating = newavg;
     }
     const updatedFaculty = await updateAFaculty(facId, faculty);
-    res
-      .status(200)
-      .json({
-        message: "Review Updated Successfully",
-      });
+    res.status(200).json({
+      message: "Review Updated Successfully",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });

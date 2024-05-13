@@ -4,8 +4,19 @@ import Review from "../model/review";
 import UserModel from "../model/user";
 import { review, reviewQuery } from "../@types/review";
 
-export const getAllReview = async () => {
-  const review = await Review.find();
+export const getAllReview = async (
+  limit: number = 20,
+  skip: number = 0,
+  createdBy: string | undefined = undefined
+) => {
+  const review = await Review.find({
+    createdBy: createdBy ? createdBy : { $exists: true },
+  })
+    .limit(limit)
+    .skip(skip)
+    .select("-createdFor")
+    .populate(["createdBy"])
+    .sort({ createdAt: -1 })
   if (!review) {
     throw new Error("Review not found");
   }
@@ -46,21 +57,17 @@ export const getFacultyById = async (id: string) => {
 
 export const getReviewByFacultyId = async (
   id: string,
-  start: number,
-  count: number | undefined
+  limit: number = 20,
+  skip: number = 0
 ) => {
   if (!id) {
     throw new Error("Please provide a valid Id");
   }
-  if (!start || !count) {
-    throw new Error("Please provide a valid start and count");
-  }
   const reviews = await Review.find({ createdFor: id })
-    .skip(start - 1 ? start - 1 : 0)
-    .limit(count ? count : 20);
-  if (!reviews) {
-    throw new Error("no Reviews found for that faculty");
-  }
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+  
   return reviews;
 };
 
@@ -69,9 +76,6 @@ export const getTotalReviewByFacultyId = async (id: string) => {
     throw new Error("Please provide a valid Id");
   }
   const totalCount = await Review.countDocuments({ createdFor: id });
-  if (!totalCount) {
-    throw new Error("No review documents found ");
-  }
   return totalCount;
 };
 

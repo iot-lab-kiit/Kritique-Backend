@@ -1,7 +1,8 @@
 export interface reviewQuery {
-  start: number;
-  count?: number;
+  limit?: number;
+  skip?: number;
   facultyId : string;
+  createdBy?: string;
 }
 
 export interface review {
