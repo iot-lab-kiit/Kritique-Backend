@@ -5,9 +5,9 @@ import { UserQuery } from "../@types/user";
 
 export const authorizeUser = async (req: Request, res: Response) => {
   try {
-    const { token, role }: UserQuery = req.body;
-    if (!token) return res.send(400).send("Token is required");
-    const user = await firebaseAuth.verifyIdToken(token);
+    const { access_token, role }: UserQuery = req.body;
+    if (!access_token) return res.status(400).send("Token is required");
+    const user = await firebaseAuth.verifyIdToken(access_token);
     const record = await firebaseAuth.getUser(user.uid);
     const email = record.providerData[0].email;
     const userRecord = await UserModel.findOneAndUpdate(
@@ -30,7 +30,7 @@ export const authorizeUser = async (req: Request, res: Response) => {
     return res.send(newUser);
   } catch (error) {
     console.log(error);
-    res.send(500).send("Internal Server Error");
+    res.status(500).send("Internal Server Error");
   }
 };
 
@@ -46,6 +46,6 @@ export const deleteUser = async (req: Request, res: Response) => {
     return res.send("User not found");
   } catch (error) {
     console.log(error);
-    return res.send(500).send("Internal Server Error");
+    return res.status(500).send("Internal Server Error");
   }
 };

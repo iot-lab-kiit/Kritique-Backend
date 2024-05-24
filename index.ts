@@ -17,7 +17,7 @@ const corsOptions = { origin: "*", optionssuccessStatus: 200 };
 import userRoutes from "./src/routes/user";
 import reviewRoutes from "./src/routes/review";
 import facultyRoutes from "./src/routes/faculty";
-// import { authToken } from "./src/middleware/auth";   // Use during PROD
+import { authToken } from "./src/middleware/auth"; // Use during PROD
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -31,9 +31,9 @@ app.use(cors(corsOptions));
 app.use(compress());
 app.use(morgan("dev"));
 
-app.use("/authenticate", userRoutes);
-app.use("/reviews", reviewRoutes);
-app.use("/faculties", facultyRoutes);
+app.use("/authentication", userRoutes);
+app.use("/reviews", authToken, reviewRoutes);
+app.use("/faculties", authToken, facultyRoutes);
 
 app.use((req: Request, res: Response) =>
   res.send("Teacher Review APi. Coded with ❤️ by IoT Web Team.")
