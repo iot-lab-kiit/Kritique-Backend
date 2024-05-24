@@ -8,6 +8,7 @@ const UserSchema = new mongoose.Schema<User>(
     email: { type: String, default: null },
     photoUrl: { type: String, default: null },
     role: { type: String, enum: ["admin", "user"], default: "user" },
+    status: { type: Boolean, default: false }, // false : not verified, true : verified
   },
   { timestamps: true }
 );
