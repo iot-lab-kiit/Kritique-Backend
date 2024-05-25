@@ -58,8 +58,8 @@ router.get("/:id/delete", async (req, res) => {
   }
 });
 
-//Get faculty by id
-router.get("/:id", async (req, res) => {
+//Get faculty by id ( render )
+router.get("/view/:id", async (req, res) => {
   try {
     const id = req.params.id;
 
@@ -73,6 +73,27 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Faculty not found" });
     }
     res.status(200).render("Faculty/facultyDetails", { faculty });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Get faculty by id ( json )
+router.get("/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    if (!id || id === ":id") {
+      return res.status(400).json({ message: "Id is required" });
+    }
+
+    const facultyData = await findFaculty(id);
+    const faculty = facultyData.faculty;
+    if (!faculty) {
+      return res.status(404).json({ message: "Faculty not found" });
+    }
+    res.status(200).json(faculty);
   } catch (err) {
     console.log(err);
     res.status(500).send("Internal Server Error");
