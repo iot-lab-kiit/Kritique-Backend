@@ -17,7 +17,6 @@ import {
   deleteAReview,
   updateAFaculty,
 } from "../controllers/review";
-import { messaging } from "firebase-admin";
 
 const router = express.Router();
 
@@ -44,7 +43,7 @@ router.post("/", async (req: Request, res: Response) => {
     const faculty = await getFacultyById(createdFor);
     if (!faculty) return res.status(404).json({ message: "Faculty not found" });
     const newReview = await createNewReview(
-      createdBy,
+      user.id,
       createdFor,
       rating,
       feedback
@@ -79,7 +78,7 @@ router.get("/:facultyId", async (req: Request, res: Response) => {
       await faculty.populate({
         path: "reviewList",
         populate: {
-          path: "createdBy"
+          path: "createdBy",
         },
         select: ["-createdFor"],
       });
@@ -91,6 +90,7 @@ router.get("/:facultyId", async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 router.put("/:reviewId", async (req: Request, res: Response) => {
   try {
     const id = req.params.reviewId;
@@ -111,7 +111,9 @@ router.put("/:reviewId", async (req: Request, res: Response) => {
     }
     if (feedback) review.feedback = feedback;
     const newReview = await updateAReview(id, review);
+    console.log(review);
     const facId = review.createdFor.toString();
+    console.log(facId);
     const faculty = await getFacultyById(facId);
     if (rating) {
       let total = faculty.totalRatings;
@@ -136,19 +138,22 @@ router.delete("/:id", async (req: Request, res: Response) => {
     if (!review) return res.status(404).json({ message: "Review not found" });
     //Get the faculty for which the review is being created and remove it from the list
     //And Update the faculty
-    const faculty=await getFacultyById(review.createdFor.toString())
-    faculty.reviewList = faculty.reviewList.filter((reviewId) => reviewId.toString() !== id);
-    let totalRatings=faculty.totalRatings;
-    let avgRating=faculty.avgRating;
-    if(totalRatings==1){
-      faculty.avgRating=0;
-      faculty.totalRatings=0;
-    }else{
-      let newAvg=((totalRatings*avgRating)-review.rating)/(totalRatings-1);
-      faculty.avgRating=newAvg;
-      faculty.totalRatings=totalRatings-1;
+    const faculty = await getFacultyById(review.createdFor.toString());
+    faculty.reviewList = faculty.reviewList.filter(
+      (reviewId) => reviewId.toString() !== id
+    );
+    let totalRatings = faculty.totalRatings;
+    let avgRating = faculty.avgRating;
+    if (totalRatings == 1) {
+      faculty.avgRating = 0;
+      faculty.totalRatings = 0;
+    } else {
+      let newAvg =
+        (totalRatings * avgRating - review.rating) / (totalRatings - 1);
+      faculty.avgRating = newAvg;
+      faculty.totalRatings = totalRatings - 1;
     }
-    await updateAFaculty(faculty._id.toString(),faculty);
+    await updateAFaculty(faculty._id.toString(), faculty);
     await deleteAReview(id);
     res.status(200).json({ message: "Review deleted successfully" });
   } catch (error) {

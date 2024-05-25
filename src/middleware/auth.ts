@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { firebaseAuth } from "../lib/firebase-admin";
 import { NextFunction, Request, Response } from "express";
+
 dotenv.config();
 
 export const authToken = async (
@@ -27,7 +28,6 @@ export const authToken = async (
 const verifyIdToken = async (token: string) => {
   try {
     const user = await firebaseAuth.verifyIdToken(token);
-    // console.log(user);
     return user ? true : false;
   } catch (error) {
     console.log(error);

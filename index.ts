@@ -1,11 +1,11 @@
-import express, { Request, Response } from "express";
-import dotenv from "dotenv";
+import path from "path";
 import cors from "cors";
+import dotenv from "dotenv";
+import morgan from "morgan";
 import mongoose from "mongoose";
 import compress from "compression";
-import morgan from "morgan";
-import path from "path";
 import methodOverride from "method-override";
+import express, { Request, Response } from "express";
 
 dotenv.config();
 const app = express();
@@ -17,7 +17,7 @@ const corsOptions = { origin: "*", optionssuccessStatus: 200 };
 import userRoutes from "./src/routes/user";
 import reviewRoutes from "./src/routes/review";
 import facultyRoutes from "./src/routes/faculty";
-import { authToken } from "./src/middleware/auth"; // Use during PROD
+import { authToken } from "./src/middleware/auth";
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -31,7 +31,7 @@ app.use(cors(corsOptions));
 app.use(compress());
 app.use(morgan("dev"));
 
-app.use("/authentication", userRoutes);
+app.use("/authenticate", userRoutes);
 app.use("/reviews", authToken, reviewRoutes);
 app.use("/faculties", authToken, facultyRoutes);
 

@@ -8,6 +8,6 @@ export interface User {
 }
 
 export interface UserQuery {
-  access_token: string;
+  token: string;
   role: string;
 }

@@ -16,7 +16,7 @@ export const getAllReview = async (
     .skip(skip)
     .select("-createdFor")
     .populate(["createdBy"])
-    .sort({ createdAt: -1 })
+    .sort({ createdAt: -1 });
   if (!review) {
     throw new Error("Review not found");
   }
@@ -38,7 +38,7 @@ export const getUserById = async (id: string) => {
   if (!id) {
     throw new Error("Please provide a valid Id");
   }
-  const user = await UserModel.findById(id);
+  const user = await UserModel.findOne({ uid: id });
   if (!user) {
     throw new Error("User not found");
   }
@@ -67,7 +67,7 @@ export const getReviewByFacultyId = async (
     .skip(skip)
     .limit(limit)
     .sort({ createdAt: -1 });
-  
+
   return reviews;
 };
 

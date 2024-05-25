@@ -4,5 +4,6 @@ const router = express.Router();
 
 router.post("/", authorizeUser);
 router.delete("/", deleteUser);
+// get user history
 
 export default router;
