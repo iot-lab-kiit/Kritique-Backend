@@ -22,7 +22,7 @@ router.get("/delete/:id", renderDeleteFaculty);
 
 // JSON
 router.get("/", getAllFaculty);
-router.post("/create", createFaculty);
+router.post("/", createFaculty);
 router.get("/:id", getFacultyById);
 router.put("/:id", updateFaculty);
 router.delete("/:id/", deleteFaculty);

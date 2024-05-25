@@ -1,8 +1,8 @@
 import UserModel from "../model/user";
+import ReviewModel from "../model/review";
 import { UserQuery } from "../@types/user";
 import { Request, Response } from "express";
 import { firebaseAuth } from "../lib/firebase-admin";
-import ReviewModel from "../model/review";
 
 export const authorizeUser = async (req: Request, res: Response) => {
   try {

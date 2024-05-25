@@ -1,7 +1,7 @@
 import express from "express";
-import { authorizeUser, deleteUser, getUserHistory } from "../controllers/user";
-import { authToken } from "../middleware/auth";
 const router = express.Router();
+import { authToken } from "../middleware/auth";
+import { authorizeUser, deleteUser, getUserHistory } from "../controllers/user";
 
 router.post("/", authorizeUser);
 router.delete("/:id", authToken, deleteUser);

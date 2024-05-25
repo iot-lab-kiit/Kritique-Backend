@@ -19,24 +19,21 @@ import reviewRoutes from "./src/routes/review";
 import facultyRoutes from "./src/routes/faculty";
 import { authToken } from "./src/middleware/auth";
 
-app.use(express.urlencoded({ extended: true }));
-
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "/src/views"));
-
-app.use(methodOverride("_method"));
-
-app.use(express.json());
-app.use(cors(corsOptions));
 app.use(compress());
 app.use(morgan("dev"));
+app.use(express.json());
+app.use(cors(corsOptions));
+app.set("view engine", "ejs");
+app.use(methodOverride("_method"));
+app.use(express.urlencoded({ extended: true }));
+app.set("views", path.join(__dirname, "/src/views"));
 
 app.use("/authenticate", userRoutes);
 app.use("/reviews", authToken, reviewRoutes);
 app.use("/faculties", authToken, facultyRoutes);
 
 app.use((req: Request, res: Response) =>
-  res.send("Teacher Review APi. Coded with ❤️ by IoT Web Team.")
+  res.send({ message: "Teacher Review APi. Coded with ❤️ by IoT Web Team." })
 );
 
 mongoose

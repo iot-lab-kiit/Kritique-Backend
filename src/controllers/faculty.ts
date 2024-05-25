@@ -3,7 +3,18 @@ import FacultyModel from "../model/faculty";
 
 export const getAllFaculty = async (req: Request, res: Response) => {
   try {
-    const { limit, skip } = req.query;
+    const { limit, skip, name } = req.query;
+
+    if (name) {
+      const faculties = await FacultyModel.find({
+        name: { $regex: name as string, $options: "i" },
+      })
+        .select("-reviewList")
+        .limit(limit ? parseInt(limit as string, 10) : 10)
+        .skip(skip ? parseInt(skip as string, 10) : 0);
+      return res.status(200).json(faculties);
+    }
+
     const faculties = await FacultyModel.find()
       .select("-reviewList")
       .limit(limit ? parseInt(limit as string, 10) : 10)

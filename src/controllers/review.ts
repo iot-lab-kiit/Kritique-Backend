@@ -1,7 +1,7 @@
 import UserModel from "../model/user";
 import ReviewModel from "../model/review";
-import FacultyModel from "../model/faculty";
 import { Request, Response } from "express";
+import FacultyModel from "../model/faculty";
 import { review, reviewQuery } from "../@types/review";
 
 export const getAllReview = async (req: Request, res: Response) => {
