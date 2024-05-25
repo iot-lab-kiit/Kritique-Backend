@@ -35,14 +35,14 @@ export const authorizeUser = async (req: Request, res: Response) => {
 
 export const deleteUser = async (req: Request, res: Response) => {
   try {
-    const uid = req.body.uid;
+    const uid = req.params.id;
     if (!uid) return res.sendStatus(400);
     const userRecord = await UserModel.findOneAndDelete({ uid: uid });
     if (userRecord) {
       firebaseAuth.deleteUser(uid);
       return res.json({ message: "User deleted" });
     }
-    return res.send("User not found");
+    return res.send({ message: "User not found" });
   } catch (error) {
     console.log(error);
     return res.status(500).send("Internal Server Error");
