@@ -1,9 +1,10 @@
 import express from "express";
-import { authorizeUser, deleteUser } from "../controllers/auth";
+import { authorizeUser, deleteUser, getUserHistory } from "../controllers/auth";
+import { authToken } from "../middleware/auth";
 const router = express.Router();
 
 router.post("/", authorizeUser);
-router.delete("/", deleteUser);
-// get user history
+router.delete("/", authToken, deleteUser);
+router.get("/:id", authToken, getUserHistory);
 
 export default router;
