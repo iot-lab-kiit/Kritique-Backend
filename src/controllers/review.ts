@@ -4,6 +4,24 @@ import { Request, Response } from "express";
 import FacultyModel from "../model/faculty";
 import { review, reviewQuery } from "../@types/review";
 
+export const getUserHistory = async (req: Request, res: Response) => {
+  try {
+    // const { limit, skip } = req.query as unknown as reviewQuery;
+    const id = req.params.id;
+    if (!id) return res.status(400).send("Id is required");
+    const user = await UserModel.findOne({ uid: id }).select("_id");
+    const reviews = await ReviewModel.find({ createdBy: user?._id }).populate(
+      "createdFor"
+    );
+    // .limit(limit ? limit : 10)
+    // .skip(skip ? skip : 0);
+    return res.send(reviews);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal Server Error");
+  }
+};
+
 export const getAllReview = async (req: Request, res: Response) => {
   try {
     const { limit, skip, createdBy } = req.query as unknown as reviewQuery;
@@ -226,7 +244,12 @@ export const renderGetAllReviews = async (req: Request, res: Response) => {
 };
 
 export const renderCreateReview = async (req: Request, res: Response) => {
-  res.render("review/createReview");
+  try {
+    res.render("review/createReview");
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ message: e.message });
+  }
 };
 
 export const renderUpdateReview = async (req: Request, res: Response) => {

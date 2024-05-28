@@ -123,7 +123,12 @@ export const renderGetAllFaculties = async (req: Request, res: Response) => {
 };
 
 export const renderCreateFaculty = async (req: Request, res: Response) => {
-  res.render("Faculty/facultyForm");
+  try {
+    res.render("Faculty/facultyForm");
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ message: e.message });
+  }
 };
 
 export const renderGetFacultyById = async (req: Request, res: Response) => {

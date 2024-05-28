@@ -9,8 +9,8 @@ export const authToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  let token;
   try {
+    let token;
     if (process.env.ACCESS_TOKEN_DISABLED === "true") next();
     else {
       if (!req.headers.authorization)

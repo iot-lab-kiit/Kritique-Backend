@@ -9,6 +9,7 @@ import {
   renderFacultyReviews,
   renderGetAllReviews,
   renderUpdateReview,
+  getUserHistory,
 } from "../controllers/review";
 const router = express.Router();
 
@@ -24,5 +25,6 @@ router.post("/", createReview);
 router.get("/:facultyId", getFacultyReviewById);
 router.put("/:reviewId", updateReview);
 router.delete("/:id", deleteReview);
+router.get("/:id/history", getUserHistory);
 
 export default router;
