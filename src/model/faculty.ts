@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 const facultySchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    experience: { type: String },
+    experience: { type: Number, required: true },
     photoUrl: { type: String },
     avgRating: { type: Number, default: 0 },
     totalRatings: { type: Number, default: 0 },
