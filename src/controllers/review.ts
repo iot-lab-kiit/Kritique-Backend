@@ -88,6 +88,19 @@ export const createReview = async (req: Request, res: Response) => {
         createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
       );
 
+      for (const reviewId of faculty.reviewList) {
+        const review = await ReviewModel.findById(reviewId);
+        if (review && review.createdBy.equals(user._id)) {
+          return res.send(
+            createResponse(
+              INVALID_REQUEST,
+              "User already reviewed this faculty",
+              null
+            )
+          );
+        }
+      }
+    
     const newReview = new ReviewModel({
       createdBy: user._id,
       createdFor,
