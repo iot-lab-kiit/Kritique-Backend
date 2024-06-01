@@ -18,7 +18,7 @@ export const getAllFaculty = async (req: Request, res: Response) => {
 
     if (name) {
       const faculties = await FacultyModel.find({
-        name: { $regex: name as string, $options: "i" },
+        name: { $regex: name.trim() as string, $options: "i" },
       })
         .select("-reviewList")
         .limit(limit ? limit : 10)
@@ -26,7 +26,7 @@ export const getAllFaculty = async (req: Request, res: Response) => {
 
       if (faculties.length === 0 && page == 0)
         return res.send(
-          createResponse(FACULTY_NOT_FOUND, "Faculty not found", {})
+          createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
         );
 
       return res.send(

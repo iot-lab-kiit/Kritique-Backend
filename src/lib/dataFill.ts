@@ -51,7 +51,6 @@ async function insertFaculty(url: string) {
   await connectToMongoDB();
   const url =
     "https://opensheet.elk.sh/1XiN_TvpeXqhMrrl_tP0cGQ9s9e530wSbzbAxUideJMg/Teacher";
-  // await Faculty.create({ name: "Priyanshuu" });
   await insertFaculty(url);
   console.log("Done");
   process.exit(0);

@@ -162,7 +162,7 @@ export const getFacultyReviewById = async (req: Request, res: Response) => {
       await faculty.populate({
         path: "reviewList",
         populate: { path: "createdBy" },
-        select: ["-createdFor"],
+        select: "-createdFor -updatedAt -__v",
       });
     }
     if (faculty.reviewList.length === 0 && page == 0)
