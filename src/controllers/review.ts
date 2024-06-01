@@ -99,7 +99,7 @@ export const createReview = async (req: Request, res: Response) => {
     let newrating = newReview.rating;
     let total = faculty.totalRatings;
     let avgRating = faculty.avgRating;
-    let newavg = (avgRating * total + newrating) / (total + 1); // FIXME
+    let newavg = ((avgRating * total) + newrating) / (total + 1); // FIXME
 
     faculty.avgRating = newavg;
     faculty.reviewList.push(newReview._id);
@@ -226,7 +226,7 @@ export const updateReview = async (req: Request, res: Response) => {
     if (rating) {
       let total = faculty.totalRatings;
       let avg = faculty.avgRating;
-      let newavg = (avg * total - oldRating + rating) / total;
+      let newavg = ((avg * total ) - oldRating + rating) / total;
       faculty.avgRating = newavg;
     }
 
@@ -276,7 +276,7 @@ export const deleteReview = async (req: Request, res: Response) => {
       faculty.totalRatings = 0;
     } else {
       let newAvg =
-        (totalRatings * avgRating - review.rating) / (totalRatings - 1);
+        ((totalRatings * avgRating) - review.rating) / (totalRatings - 1);
       faculty.avgRating = newAvg;
       faculty.totalRatings = totalRatings - 1;
     }
