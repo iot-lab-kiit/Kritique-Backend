@@ -1,7 +1,7 @@
 export interface reviewQuery {
   limit?: number;
-  skip?: number;
-  facultyId : string;
+  page?: number;
+  facultyId: string;
   createdBy?: string;
 }
 

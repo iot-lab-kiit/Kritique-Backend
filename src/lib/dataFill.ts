@@ -1,11 +1,13 @@
+import axios from "axios";
 import mongoose from "mongoose";
-import fs from "fs";
-import csv from "csv-parser";
+import { config } from "dotenv";
+
+config();
 
 const facultySchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    experience: { type: String },
+    name: { type: String, required: true, unique: true },
+    experience: { type: Number, default: 0 },
     photoUrl: { type: String },
     avgRating: { type: Number, default: 0 },
     totalRatings: { type: Number, default: 0 },
@@ -13,51 +15,44 @@ const facultySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 const Faculty = mongoose.model("Faculty", facultySchema);
 
 async function connectToMongoDB() {
   try {
-    await mongoose.connect("mongodb://localhost:27017/faculty");
+    await mongoose.connect(process.env.MONGO_URI as string);
     console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
   }
 }
 
-async function facultyExists(facName) {
-  const faculty = await Faculty.findOne({ name: facName.name });
-  return faculty;
-}
-async function insertFacultyFromCSV(csvFilePath) {
-  const facultyList = [];
-
-  fs.createReadStream(csvFilePath)
-    .pipe(csv())
-    .on("data", (row) => {
-      if (row.name) {
-        facultyList.push({ name: row.name });
-      }
-    })
-    .on("end", async () => {
-      console.log(facultyList);
-      try {
-        for (const facName of facultyList) {
-          const exists = await facultyExists(facName);
-          if (!exists) {
-            await Faculty.create({ name: facName.name });
-            console.log(`Inserted: ${facName.name}`);
-          } else console.log(`Skipped: ${facName.name}`);
-        }
-        console.log("Faculty data processing completed");
-      } catch (error) {
-        console.error("Error inserting faculty data:", error);
-      }
-    });
+async function insertFaculty(url: string) {
+  const { data } = await axios.get(url);
+  for (let i = 0; i < data.length; i++) {
+    try {
+      await Faculty.create([
+        { name: data[i].A },
+        { name: data[i].B },
+        { name: data[i].C },
+        { name: data[i].D },
+        { name: data[i].E },
+        { name: data[i].F },
+        { name: data[i].G },
+        { name: data[i].H },
+        { name: data[i].I },
+      ]);
+    } catch (err: any) {
+      console.error(err.message);
+    }
+  }
 }
 
 (async () => {
   await connectToMongoDB();
-  const csvFilePath = "./1.csv";
-  await insertFacultyFromCSV(csvFilePath);
+  const url =
+    "https://opensheet.elk.sh/1XiN_TvpeXqhMrrl_tP0cGQ9s9e530wSbzbAxUideJMg/Teacher";
+  // await Faculty.create({ name: "Priyanshuu" });
+  await insertFaculty(url);
+  console.log("Done");
+  process.exit(0);
 })();

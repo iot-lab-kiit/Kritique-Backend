@@ -7,3 +7,9 @@ export interface Faculty {
   totalRatings?: number;
   reviewList?: string[];
 }
+
+export interface facultyQuery {
+  limit?: number;
+  page?: number;
+  name?: string;
+}
