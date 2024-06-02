@@ -5,6 +5,7 @@ import FacultyModel from "../model/faculty";
 import { review, reviewQuery } from "../@types/review";
 import { createResponse } from "../../response";
 import {
+  ALREADY_REVIEWED,
   CREATED,
   DELETED,
   FACULTY_NOT_FOUND,
@@ -88,6 +89,19 @@ export const createReview = async (req: Request, res: Response) => {
         createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
       );
 
+    for (const reviewId of faculty.reviewList) {
+      const review = await ReviewModel.findById(reviewId);
+      if (review && review.createdBy.equals(user._id)) {
+        return res.send(
+          createResponse(
+            ALREADY_REVIEWED,
+            "User already reviewed this faculty",
+            null
+          )
+        );
+      }
+    }
+
     const newReview = new ReviewModel({
       createdBy: user._id,
       createdFor,
@@ -99,7 +113,7 @@ export const createReview = async (req: Request, res: Response) => {
     let newrating = newReview.rating;
     let total = faculty.totalRatings;
     let avgRating = faculty.avgRating;
-    let newavg = (avgRating * total + newrating) / (total + 1); // FIXME
+    let newavg = (avgRating * total + newrating) / (total + 1);
 
     faculty.avgRating = newavg;
     faculty.reviewList.push(newReview._id);
