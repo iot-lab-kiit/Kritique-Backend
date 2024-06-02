@@ -8,6 +8,7 @@ export const UPDATED = 203;
 export const USER_NOT_FOUND = 204;
 export const REVIEW_NOT_FOUND = 205;
 export const FACULTY_NOT_FOUND = 206;
+export const ALREADY_REVIEWED = 207;
 
 // Invalid request or other error codes
 export const INVALID_REQUEST = 400;
