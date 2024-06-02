@@ -1,57 +1,193 @@
+import UserModel from "../model/user";
+import ReviewModel from "../model/review";
 import { Request, Response } from "express";
 import FacultyModel from "../model/faculty";
-import Review from "../model/review";
-import UserModel from "../model/user";
 import { review, reviewQuery } from "../@types/review";
+import { createResponse } from "../../response";
+import {
+  ALREADY_REVIEWED,
+  CREATED,
+  DELETED,
+  FACULTY_NOT_FOUND,
+  INTERNAL_SERVER_ERROR,
+  INVALID_REQUEST,
+  REVIEW_NOT_FOUND,
+  SUCCESSFUL,
+  UPDATED,
+  USER_NOT_FOUND,
+} from "../constants/statusCode";
 
-// TODO : Validated Status
-export const fetchFacultyReviews = async (req: Request, res: Response) => {
+export const getUserHistory = async (req: Request, res: Response) => {
   try {
-    const { start, count } = req.query as unknown as reviewQuery;
-    const facultyId = req.params.facultyId;
-    const faculty = await FacultyModel.findById(facultyId);
-    if (!faculty) return res.status(404).json({ message: "Faculty not found" });
-    const totalCount = await Review.countDocuments({
-      createdFor: facultyId,
-    });
+    const { limit, page } = req.query as unknown as reviewQuery;
+    const id = req.params.id;
+    if (!id)
+      return res.send(createResponse(INVALID_REQUEST, "Id is required", null));
+    const user = await UserModel.findOne({ uid: id }).select("_id");
+    if (!user)
+      return res.send(createResponse(USER_NOT_FOUND, "User not found", null));
 
-    if (totalCount === 0)
-      return res.status(200).json({ message: "No reviews found" });
+    const reviews = await ReviewModel.find({ createdBy: user?._id })
+      .sort({ updatedAt: -1 })
+      .populate("createdFor")
+      .limit(limit ? limit : 10)
+      .skip(page ? page * (limit ? limit : 10) : 0);
+    if (reviews.length === 0 && page == 0)
+      return res.send(
+        createResponse(REVIEW_NOT_FOUND, "Review not found", null)
+      );
 
-    let reviews;
+    return res.send(createResponse(SUCCESSFUL, "Reviews found", reviews));
+  } catch (error: any) {
+    console.log(error);
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+  }
+};
 
-    reviews = await Review.find({ createdFor: facultyId })
-      .skip(start - 1 ? start - 1 : 0)
-      .limit(count ? count : 20);
+export const getAllReview = async (req: Request, res: Response) => {
+  try {
+    const { limit, page, createdBy } = req.query as unknown as reviewQuery;
+    const reviews = await ReviewModel.find({
+      createdBy: createdBy ? createdBy : { $exists: true },
+    })
+      .limit(limit ? limit : 10)
+      .skip(page ? page * (limit ? limit : 10) : 0)
+      .select("-createdFor")
+      .populate(["createdBy"])
+      .sort({ createdAt: -1 });
+    if (reviews.length === 0 && page == 0)
+      return res.send(
+        createResponse(REVIEW_NOT_FOUND, "Review not found", null)
+      );
 
-    res.json({ faculty, reviews: reviews });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.send(createResponse(SUCCESSFUL, "Review Found", reviews));
+  } catch (error: any) {
+    console.log(error);
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
   }
 };
 
 export const createReview = async (req: Request, res: Response) => {
   try {
     const { createdBy, createdFor, rating, feedback }: review = req.body;
+    if (!createdBy || !createdFor || !rating || !feedback)
+      return res.send(
+        createResponse(
+          INVALID_REQUEST,
+          "CreateBy OR CreatedFor OR Rating OR Feedback are required",
+          null
+        )
+      );
 
-    const user = await UserModel.findById(createdBy);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await UserModel.findOne({ uid: createdBy }).select("id");
+    if (!user)
+      return res.send(createResponse(USER_NOT_FOUND, "User not found", null));
 
     const faculty = await FacultyModel.findById(createdFor);
-    if (!faculty) return res.status(404).json({ message: "Faculty not found" });
+    if (!faculty)
+      return res.send(
+        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
+      );
 
-    const review = new Review({
-      createdBy,
+    for (const reviewId of faculty.reviewList) {
+      const review = await ReviewModel.findById(reviewId);
+      if (review && review.createdBy.equals(user._id)) {
+        return res.send(
+          createResponse(
+            ALREADY_REVIEWED,
+            "User already reviewed this faculty",
+            null
+          )
+        );
+      }
+    }
+
+    const newReview = new ReviewModel({
+      createdBy: user._id,
       createdFor,
       rating,
       feedback,
     });
-    await review.save();
-    res.status(200).json({ message: "Review created successfully", review });
-  } catch (error) {
+    await newReview.save();
+
+    let newrating = newReview.rating;
+    let total = faculty.totalRatings;
+    let avgRating = faculty.avgRating;
+    let newavg = (avgRating * total + newrating) / (total + 1);
+
+    faculty.avgRating = newavg;
+    faculty.reviewList.push(newReview._id);
+    faculty.totalRatings = total + 1;
+
+    const updatedFaculty = await FacultyModel.findByIdAndUpdate(
+      createdFor,
+      {
+        avgRating: faculty.avgRating,
+        totalRatings: faculty.totalRatings,
+        reviewList: faculty.reviewList,
+      },
+      { returnOriginal: false }
+    );
+    if (!updatedFaculty)
+      return res.send(
+        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
+      );
+
+    res.send(createResponse(CREATED, "Review Created", newReview));
+  } catch (error: any) {
     console.log(error);
-    res.status(500).json({ message: "Error creating review", error });
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+  }
+};
+
+export const getFacultyReviewById = async (req: Request, res: Response) => {
+  try {
+    const { limit, page } = req.query as unknown as reviewQuery;
+    const facultyId = req.params.facultyId;
+
+    if (!facultyId)
+      return res.send(
+        createResponse(INVALID_REQUEST, "Provide a facutly Id", null)
+      );
+
+    const faculty = await FacultyModel.findById(facultyId);
+    if (!faculty)
+      return res.send(
+        createResponse(FACULTY_NOT_FOUND, "Faculty Not Found", null)
+      );
+
+    const totalCount = await ReviewModel.countDocuments({
+      createdFor: facultyId,
+    });
+    faculty.totalRatings = totalCount;
+
+    const reviews = await ReviewModel.find({ createdFor: facultyId })
+      .limit(limit ? limit : 10)
+      .skip(page ? page * (limit ? limit : 10) : 0)
+      .sort({ createdAt: -1 });
+
+    if (reviews.length === 0 && page == 0)
+      return res.send(
+        createResponse(REVIEW_NOT_FOUND, "Review Not Found", null)
+      );
+
+    if (reviews) {
+      faculty.reviewList = reviews.map((r) => r._id);
+      await faculty.populate({
+        path: "reviewList",
+        populate: { path: "createdBy" },
+        select: "-createdFor -updatedAt -__v",
+      });
+    }
+    if (faculty.reviewList.length === 0 && page == 0)
+      return res.send(
+        createResponse(REVIEW_NOT_FOUND, "Review Not Found", null)
+      );
+
+    res.send(createResponse(SUCCESSFUL, "Faculty Found", faculty.reviewList));
+  } catch (error: any) {
+    console.log(error);
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
   }
 };
 
@@ -60,81 +196,167 @@ export const updateReview = async (req: Request, res: Response) => {
     const id = req.params.reviewId;
     const { rating, feedback }: review = req.body;
     if (!id || (!rating && !feedback))
-      return res
-        .status(400)
-        .json({ message: "ID or Rating or feedback is required" });
-    const review = await Review.findById(id);
-    if (!review) return res.status(404).json({ message: "Review not found" });
+      return res.send(
+        createResponse(
+          INVALID_REQUEST,
+          "ID or Rating or Feedback is required",
+          null
+        )
+      );
 
+    const review = await ReviewModel.findById(id);
+    if (!review)
+      return res.send(
+        createResponse(REVIEW_NOT_FOUND, "Review Not Found", null)
+      );
+
+    let oldRating = review.rating;
     if (rating) {
       if (rating >= 1.0 && rating <= 5.0) review.rating = rating;
       else
-        return res
-          .status(400)
-          .json({ message: "Rating should be between 1.0 and 5.0" });
+        return res.send(
+          createResponse(
+            INVALID_REQUEST,
+            "Rating should be between 1.0 and 5.0",
+            null
+          )
+        );
     }
 
     if (feedback) review.feedback = feedback;
+    const newReview = await ReviewModel.findByIdAndUpdate(
+      id,
+      { rating: review.rating, feedback: review.feedback },
+      { timestamps: true }
+    );
 
-    await review.save();
-    res.status(200).json({ message: "Review updated successfully", review });
-  } catch (error) {
+    const facId = review.createdFor.toString();
+    const faculty = await FacultyModel.findById(facId);
+    if (!faculty)
+      return res.send(
+        createResponse(FACULTY_NOT_FOUND, "Faculty Not Found", null)
+      );
+
+    if (rating) {
+      let total = faculty.totalRatings;
+      let avg = faculty.avgRating;
+      let newavg = (avg * total - oldRating + rating) / total;
+      faculty.avgRating = newavg;
+    }
+
+    const updatedFaculty = await FacultyModel.findByIdAndUpdate(
+      facId,
+      {
+        avgRating: faculty.avgRating,
+        totalRatings: faculty.totalRatings,
+        reviewList: faculty.reviewList,
+      },
+      { new: true }
+    );
+
+    res.send(createResponse(UPDATED, "Review Updated", newReview));
+  } catch (error: any) {
     console.log(error);
-    res.status(500).json({ message: "Error updating review", error });
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
   }
 };
 
 export const deleteReview = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    if (!id) return res.status(400).json({ message: "Id is required" });
-    const review = await Review.findById(id);
-    if (!review) return res.status(404).json({ message: "Review not found" });
+    if (!id)
+      return res.send(createResponse(INVALID_REQUEST, "Id is required", null));
 
-    await review.deleteOne();
-    res.status(200).json({ message: "Review deleted successfully" });
-  } catch (error) {
+    const review = await ReviewModel.findById(id);
+    if (!review)
+      return res.send(
+        createResponse(REVIEW_NOT_FOUND, "Review not found", null)
+      );
+
+    // Get the faculty for which the review is being created and remove it from the list. And Update the faculty
+    const faculty = await FacultyModel.findById(review.createdFor.toString());
+    if (!faculty)
+      return res.send(
+        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
+      );
+
+    faculty.reviewList = faculty.reviewList.filter((r) => r.toString() !== id);
+
+    let totalRatings = faculty.totalRatings;
+    let avgRating = faculty.avgRating;
+
+    if (totalRatings == 1) {
+      faculty.avgRating = 0;
+      faculty.totalRatings = 0;
+    } else {
+      let newAvg =
+        (totalRatings * avgRating - review.rating) / (totalRatings - 1);
+      faculty.avgRating = newAvg;
+      faculty.totalRatings = totalRatings - 1;
+    }
+
+    await FacultyModel.findByIdAndUpdate(
+      faculty._id,
+      {
+        avgRating: faculty.avgRating,
+        totalRatings: faculty.totalRatings,
+        reviewList: faculty.reviewList,
+      },
+      { returnOriginal: false }
+    );
+    await ReviewModel.findByIdAndDelete(id);
+
+    res.send(createResponse(DELETED, "Review Deleted", {}));
+  } catch (error: any) {
     console.log(error);
-    res.status(500).json({ message: "Error deleting review", error });
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
   }
 };
 
-export const getAllReviews = async (req: Request, res: Response) => {
+export const renderGetAllReviews = async (req: Request, res: Response) => {
   try {
-    const reviews = await Review.find();
-    res.json({ reviews });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    const reviews = await ReviewModel.find();
+    if (!reviews) res.json({ message: "Review not found" });
+    res.render("review/reviewList", { reviews });
+  } catch (e: any) {
+    console.log(e);
+    res.json({ message: e.message });
   }
 };
 
 export const renderCreateReview = async (req: Request, res: Response) => {
-  res.render("review/createReview");
+  try {
+    res.render("review/createReview");
+  } catch (e: any) {
+    console.error(e);
+    res.json({ message: e.message });
+  }
 };
 
 export const renderUpdateReview = async (req: Request, res: Response) => {
-  const reviewId = req.params.id;
-  const review = await Review.findById(reviewId);
-  if (!review) {
-    res.status(404).json({ message: "Review not found" });
-  }
-  res.render("review/updateReview", { review });
-};
+  try {
+    const reviewId = req.params.id;
+    if (!reviewId) res.json({ message: "Please provide a valid id" });
 
-export const renderGetAllReviews = async (req: Request, res: Response) => {
-  const reviews = await Review.find();
-  if (!reviews) {
-    res.status(404).json({ message: "Review not found" });
+    const review = await ReviewModel.findById(reviewId);
+    if (!review) res.json({ message: "Review not found" });
+
+    res.render("review/updateReview", { review });
+  } catch (e: any) {
+    console.log(e);
+    res.json({ message: e.message });
   }
-  res.render("review/reviewList", { reviews });
 };
 
 export const renderFacultyReviews = async (req: Request, res: Response) => {
-  const id = req.params.id;
-  const reviews = await Review.find({ createdFor: id });
-  if (!reviews) {
-    res.status(404).json({ message: "Review not found" });
+  try {
+    const id = req.params.id;
+    const reviews = await ReviewModel.find({ createdFor: id });
+    if (!reviews) res.json({ message: "Review not found" });
+
+    res.render("review/reviewList", { reviews });
+  } catch (e: any) {
+    console.log(e);
+    res.json({ message: e.message });
   }
-  res.render("review/reviewList", { reviews });
 };

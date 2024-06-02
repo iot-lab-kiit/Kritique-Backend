@@ -1,14 +1,30 @@
 import express from "express";
-import {getFaculty, getFacultyById, updateFaculty, renderDeleteForm, deleteFaculty, deleteAll, createFaculty, renderCreateForm, renderUpdateForm} from "../controllers/faculty";
+import {
+  createFaculty,
+  deleteFaculty,
+  getAllFaculty,
+  getFacultyById,
+  renderCreateFaculty,
+  renderDeleteFaculty,
+  renderGetAllFaculties,
+  renderGetFacultyById,
+  renderUpdateFaculty,
+  updateFaculty,
+} from "../controllers/faculty";
 const router = express.Router();
 
-router.get("/create", renderCreateForm);
+// HTML
+router.get("/view", renderGetAllFaculties);
+router.get("/view/:id", renderGetFacultyById);
+router.get("/create", renderCreateFaculty);
+router.get("/update/:id", renderUpdateFaculty);
+router.get("/delete/:id", renderDeleteFaculty);
+
+// JSON
+router.get("/", getAllFaculty);
 router.post("/", createFaculty);
-router.get("/:id/update", renderUpdateForm);
-router.put("/:id", updateFaculty);
-router.get("/:id/delete", renderDeleteForm);
-router.get("/deleteAll", deleteAll);
-router.delete("/:id", deleteFaculty);
 router.get("/:id", getFacultyById);
-router.get("/", getFaculty);
+router.put("/:id", updateFaculty);
+router.delete("/:id/", deleteFaculty);
+
 export default router;

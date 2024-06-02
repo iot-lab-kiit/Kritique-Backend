@@ -1,8 +1,9 @@
 import express from "express";
-import { authorizeUser, deleteUser } from "../controllers/auth";
 const router = express.Router();
+import { authToken } from "../middleware/auth";
+import { authorizeUser, deleteUser } from "../controllers/user";
 
 router.post("/", authorizeUser);
-router.delete("/", deleteUser);
+router.delete("/:id", authToken, deleteUser);
 
 export default router;

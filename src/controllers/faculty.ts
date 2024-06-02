@@ -1,120 +1,225 @@
-import {Request, Response} from "express";
+import { Request, Response } from "express";
 import FacultyModel from "../model/faculty";
-import {Faculty} from "../@types/faculty";
+import { facultyQuery } from "../@types/faculty";
+import { createResponse } from "../../response";
+import {
+  CREATED,
+  DELETED,
+  FACULTY_NOT_FOUND,
+  INTERNAL_SERVER_ERROR,
+  INVALID_REQUEST,
+  SUCCESSFUL,
+  UPDATED,
+} from "../constants/statusCode";
 
-export const getFaculty = async (req: Request, res: Response) => {
-    try {
-        const facultyList = await FacultyModel.find();
-        if (!facultyList) return res.status(404).json({message: "No records found !"});
+export const getAllFaculty = async (req: Request, res: Response) => {
+  try {
+    const { limit, page, name } = req.query as unknown as facultyQuery;
 
-        const name = req.query.name as string;
-        if (name) {
-            const faculty = await FacultyModel.find({name});
-            if (!faculty) return res.status(404).json({message: "No records found with name !"});
+    if (name) {
+      const faculties = await FacultyModel.find({
+        name: { $regex: name.trim() as string, $options: "i" },
+      })
+        .select("-reviewList")
+        .limit(limit ? limit : 10)
+        .skip(page ? page * (limit ? limit : 10) : 0);
 
-            res.status(200).json(faculty);
-            res.json(200).render("Faculty/facultyList", {list: faculty});
-        } else {
-            res.status(200).render("Faculty/facultyList", {list: facultyList});
-        }
-    } catch (err) {
-        console.log(err);
-        res.status(500).send("Internal Server Error");
-    }
-};
-export const getFacultyById = async (req: Request, res: Response) => {
-    try {
-        const {id} = req.params;
-        console.log(id);
-        if (!id || id === ":id") return res.status(400).json({message: "Id is required"});
-        const faculty = await FacultyModel.findById(id);
-        if (!faculty) return res.status(404).json({message: "Faculty not found"});
-        res.status(200).render("Faculty/facultyDetails", {faculty});
-    } catch (err) {
-        console.log(err);
-        res.status(500).send("Internal Server Error");
-    }
-};
+      if (faculties.length === 0 && page == 0)
+        return res.send(
+          createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
+        );
 
-export const renderUpdateForm = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    const faculty = await FacultyModel.findById(id);
-    if (!faculty) {
-        return res.status(404).json({message: "Faculty not found"});
+      return res.send(
+        createResponse(SUCCESSFUL, "Faculties fetched successfully", faculties)
+      );
     }
 
-    res.render("Faculty/updateForm", {faculty});
-};
+    const faculties = await FacultyModel.find()
+      .select("-reviewList")
+      .limit(limit ? limit : 10)
+      .skip(page ? page * (limit ? limit : 10) : 0);
+    if (page == 0 && faculties.length === 0)
+      return res.send(
+        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
+      );
 
-export const updateFaculty = async (req: Request, res: Response) => {
-    try {
-        const {id} = req.params;
-        const {name, experience, photoUrl}: Faculty = req.body;
-        if (!name || !experience || !photoUrl) return res.status(400).json({message: "Name, experience, and photoUrl are required"});
-        const faculty = await FacultyModel.findById(id);
-        if (!faculty) return res.status(404).json({message: "Faculty not found"});
-        faculty.name = name;
-        faculty.experience = experience;
-        faculty.photoUrl = photoUrl;
-        await faculty.save();
-        res.status(200).json({message: "Faculty updated successfully", faculty});
-    } catch (err) {
-        console.log(err);
-        res.status(500).send("Internal Server Error");
-    }
-};
-
-export const renderDeleteForm = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    const faculty = await FacultyModel.findById(id);
-    if (!faculty) {
-        return res.status(404).json({message: "Faculty not found"});
-    }
-
-    res.render("Faculty/deleteForm", {faculty});
-};
-
-export const deleteAll = async (req: Request, res: Response) => {
-    try {
-        await FacultyModel.deleteMany({});
-        res.status(200).json({message: "All faculties deleted successfully"});
-    } catch (err) {
-        console.log(err);
-        res.status(500).send("Internal Server Error");
-    }
-};
-
-export const deleteFaculty = async (req: Request, res: Response) => {
-    try {
-        const {id} = req.params;
-        if (!id) return res.status(400).json({message: "Id is required"});
-        const faculty = await FacultyModel.findById(id);
-        if (!faculty) return res.status(404).json({message: "Faculty not found"});
-        await faculty.deleteOne();
-        res.status(200).json({message: "Faculty deleted successfully"});
-    } catch (err) {
-        console.log(err);
-        res.status(500).send("Internal Server Error");
-    }
-};
-
-export const renderCreateForm = async (req: Request, res: Response) => {
-    res.render("Faculty/facultyForm");
+    res.send(
+      createResponse(SUCCESSFUL, "Faculties fetched successfully", faculties)
+    );
+  } catch (error: any) {
+    console.log(error);
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+  }
 };
 
 export const createFaculty = async (req: Request, res: Response) => {
-    try {
-        const {name, experience, photoUrl}: Faculty = req.body;
-        if (!name || !experience || !photoUrl) {
-            res.status(400).json({message: "Name, experience, and photoUrl are required"});
-            return;
-        }
-        const faculty = new FacultyModel({name, experience, photoUrl});
-        await faculty.save();
-        console.log(faculty);
-        res.status(201).json({message: "Faculty created successfully", faculty});
-    } catch (err) {
-        console.log(err);
-        res.status(500).send("Internal Server Error");
-    }
+  try {
+    const { name, experience, photoUrl } = req.body;
+    if (!name || !experience || !photoUrl)
+      return res.send(
+        createResponse(
+          INVALID_REQUEST,
+          "Name, experience, and photoUrl are required",
+          null
+        )
+      );
+
+    const faculty = new FacultyModel({ name, experience, photoUrl });
+    await faculty.save();
+
+    res.send(createResponse(CREATED, "Faculty created successfully", faculty));
+  } catch (error: any) {
+    console.log(error);
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+  }
+};
+
+export const getFacultyById = async (req: Request, res: Response) => {
+  try {
+    const { limit, page } = req.query as unknown as facultyQuery;
+    const id = req.params.id;
+    if (!id || id === ":id")
+      return res.send(createResponse(INVALID_REQUEST, "Id is required", null));
+
+    const faculty = await FacultyModel.findById(id)
+      .limit(limit ? limit : 10)
+      .skip(page ? page * (limit ? limit : 10) : 0);
+    if (!faculty && page == 0)
+      return res.send(
+        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
+      );
+
+    res.send(createResponse(SUCCESSFUL, "Faculty found", faculty));
+  } catch (error: any) {
+    console.log(error);
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+  }
+};
+
+export const updateFaculty = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    if (!id || id === ":id")
+      return res.send(createResponse(INVALID_REQUEST, "Id is required", null));
+
+    const { name, experience, photoUrl } = req.body;
+    if (!name || !experience || !photoUrl)
+      return res.send(
+        createResponse(
+          INVALID_REQUEST,
+          "Name, experience, and photoUrl are required",
+          null
+        )
+      );
+
+    const faculty = await FacultyModel.findById(id);
+    if (!faculty)
+      return res.send(
+        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
+      );
+
+    const facultyData = await FacultyModel.findByIdAndUpdate(
+      id,
+      { name, experience, photoUrl },
+      { new: true }
+    );
+    if (!facultyData)
+      return res.send(
+        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
+      );
+
+    res.send(
+      createResponse(UPDATED, "Faculty updated successfully", facultyData)
+    );
+  } catch (e: any) {
+    console.error(e);
+    res.send({ message: e.message });
+  }
+};
+
+export const deleteFaculty = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    if (!id || id === ":id")
+      return res.send(createResponse(INVALID_REQUEST, "Id is required", null));
+
+    const faculty = await FacultyModel.findById(id);
+    if (!faculty)
+      return res.send(
+        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
+      );
+
+    await FacultyModel.findByIdAndDelete(id);
+
+    res.send(createResponse(DELETED, "Faculty deleted successfully", {}));
+  } catch (error: any) {
+    console.log(error);
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+  }
+};
+
+export const renderGetAllFaculties = async (req: Request, res: Response) => {
+  try {
+    const faculties = await FacultyModel.find().select("-reviewList");
+    if (!faculties) return res.json({ message: "Faculty list not found" });
+
+    res.render("Faculty/facultyList", { list: faculties });
+  } catch (e: any) {
+    console.error(e);
+    res.json({ message: e.message });
+  }
+};
+
+export const renderCreateFaculty = async (req: Request, res: Response) => {
+  try {
+    res.render("Faculty/facultyForm");
+  } catch (e: any) {
+    console.error(e);
+    res.json({ message: e.message });
+  }
+};
+
+export const renderGetFacultyById = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    if (!id || id === ":id") return res.json({ message: "Id is required" });
+
+    const faculty = await FacultyModel.findById(id);
+    if (!faculty) return res.json({ message: "Faculty not found" });
+
+    res.render("Faculty/facultyDetails", { faculty });
+  } catch (e: any) {
+    console.error(e);
+    res.send({ message: e.message });
+  }
+};
+
+export const renderUpdateFaculty = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    if (!id || id === ":id") return res.json({ message: "Id is required" });
+
+    const faculty = await FacultyModel.findById(id);
+    if (!faculty) return res.json({ message: "Faculty not found" });
+
+    res.render("Faculty/updateForm", { faculty });
+  } catch (e: any) {
+    console.error(e);
+    res.send({ message: e.message });
+  }
+};
+
+export const renderDeleteFaculty = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    if (!id || id === ":id") return res.json({ message: "Id is required" });
+
+    const faculty = await FacultyModel.findById(id);
+    if (!faculty) return res.json({ message: "Faculty not found" });
+
+    res.render("Faculty/deleteForm", { faculty });
+  } catch (e: any) {
+    console.error(e);
+    res.send({ message: e.message });
+  }
 };
