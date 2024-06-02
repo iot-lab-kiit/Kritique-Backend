@@ -57,13 +57,46 @@ export const deleteUser = async (req: Request, res: Response) => {
       return res.send(createResponse(INVALID_REQUEST, "UID is required", null));
 
     const userRecord = await UserModel.findOneAndDelete({ uid: uid });
-    // Get All the review Created by the User
-    const AllReviews= await ReviewModel.find({createdBy:userRecord?._id})
-    // Traverse through the AllReview and Delete it
-    for (const review of AllReviews){
-      await deleteReview(review?._id.toString())
+
+    const userHistory = await ReviewModel.find({ createdBy: userRecord?._id });
+    if (userHistory.length > 0) {
+      for (let i = 0; i < userHistory.length; i++) {
+        const faculty = await FacultyModel.findById(
+          userHistory[i].createdFor.toString()
+        );
+        if (!faculty) continue;
+
+        faculty.reviewList = faculty.reviewList.filter(
+          (r) => r.toString() !== userHistory[i].createdFor.toString()
+        );
+        let totalRatings = faculty.totalRatings;
+        let avgRating = faculty.avgRating;
+
+        if (totalRatings == 1) {
+          faculty.avgRating = 0;
+          faculty.totalRatings = 0;
+        } else {
+          let newAvg =
+            (totalRatings * avgRating - userHistory[i].rating) /
+            (totalRatings - 1);
+          faculty.avgRating = newAvg;
+          faculty.totalRatings = totalRatings - 1;
+        }
+
+        await FacultyModel.findByIdAndUpdate(
+          faculty._id,
+          {
+            avgRating: faculty.avgRating,
+            totalRatings: faculty.totalRatings,
+            reviewList: faculty.reviewList,
+          },
+          { returnOriginal: false }
+        );
+
+        await ReviewModel.findByIdAndDelete(userHistory[i]._id);
+      }
     }
-    
+
     if (userRecord) {
       firebaseAuth.deleteUser(uid);
       return res.send(createResponse(DELETED, "User Deleted", {}));
