@@ -16,6 +16,7 @@ import {
   UPDATED,
   USER_NOT_FOUND,
 } from "../constants/statusCode";
+import { isProfane } from "../lib/profanity";
 
 export const getUserHistory = async (req: Request, res: Response) => {
   try {
@@ -77,6 +78,10 @@ export const createReview = async (req: Request, res: Response) => {
           "CreateBy OR CreatedFor OR Rating OR Feedback are required",
           null
         )
+      );
+    if (isProfane(feedback))
+      return res.send(
+        createResponse(INVALID_REQUEST, "Feedback contains bad words", null)
       );
 
     const user = await UserModel.findOne({ uid: createdBy }).select("id");
