@@ -17,6 +17,7 @@ import {
   USER_NOT_FOUND,
 } from "../constants/statusCode";
 import { isProfane } from "../lib/profanity";
+import { NewRequest } from "../@types/express";
 
 export const getUserHistory = async (req: Request, res: Response) => {
   try {
@@ -68,10 +69,10 @@ export const getAllReview = async (req: Request, res: Response) => {
   }
 };
 
-export const createReview = async (req: Request, res: Response) => {
+export const createReview = async (req: NewRequest, res: Response) => {
   try {
-    const { createdBy, createdFor, rating, feedback }: review = req.body;
-    if (!createdBy || !createdFor || !rating || !feedback)
+    const { createdFor, rating, feedback }: review = req.body;
+    if (!createdFor || !rating || !feedback)
       return res.send(
         createResponse(
           INVALID_REQUEST,
@@ -84,7 +85,9 @@ export const createReview = async (req: Request, res: Response) => {
         createResponse(INVALID_REQUEST, "Feedback contains bad words", null)
       );
 
-    const user = await UserModel.findOne({ uid: createdBy }).select("id");
+    if (!req.user)
+      return res.send(createResponse(USER_NOT_FOUND, "User not found", null));
+    const user = await UserModel.findOne({ uid: req.user.uid });
     if (!user)
       return res.send(createResponse(USER_NOT_FOUND, "User not found", null));
 
