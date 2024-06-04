@@ -7,11 +7,12 @@ import {
   INVALID_TOKEN,
   TOKEN_REQUIRED,
 } from "../constants/statusCode";
+import { FirebaseUser } from "../@types/user";
 
 dotenv.config();
 
 export const authToken = async (
-  req: Request,
+  req: Request & { user?: FirebaseUser },
   res: Response,
   next: NextFunction
 ) => {
@@ -22,22 +23,21 @@ export const authToken = async (
       if (!req.headers.authorization)
         return res.send(createResponse(TOKEN_REQUIRED, "Token required", null));
       token = req.headers.authorization.split(" ")[1];
-      if (await verifyIdToken(token)) next();
-      else
+      const user = (await firebaseAuth.verifyIdToken(token)) as FirebaseUser;
+      if (user) {
+        if (
+          user.email?.endsWith("@kiit.ac.in") &&
+          process.env.ALLOW_KIIT_ONLY === 'true'
+        ) {
+          req.user = user;
+          console.log(req.user);
+          next();
+        }
+      } else
         return res.send(createResponse(INVALID_TOKEN, "Invalid Token", null));
     }
   } catch (error: any) {
     console.log(error);
     return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
-  }
-};
-
-const verifyIdToken = async (token: string) => {
-  try {
-    const user = await firebaseAuth.verifyIdToken(token);
-    return user ? true : false;
-  } catch (error) {
-    console.log(error);
-    return false;
   }
 };

@@ -9,6 +9,7 @@ export const USER_NOT_FOUND = 204;
 export const REVIEW_NOT_FOUND = 205;
 export const FACULTY_NOT_FOUND = 206;
 export const ALREADY_REVIEWED = 207;
+export const EMAIL_NOT_ALLOWED = 208;
 
 // Invalid request or other error codes
 export const INVALID_REQUEST = 400;

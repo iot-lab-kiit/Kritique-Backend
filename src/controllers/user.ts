@@ -6,6 +6,7 @@ import { createResponse } from "../../response";
 import {
   CREATED,
   DELETED,
+  EMAIL_NOT_ALLOWED,
   INTERNAL_SERVER_ERROR,
   INVALID_REQUEST,
   SUCCESSFUL,
@@ -14,6 +15,9 @@ import {
 } from "../constants/statusCode";
 import ReviewModel from "../model/review";
 import FacultyModel from "../model/faculty";
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 export const authorizeUser = async (req: Request, res: Response) => {
   try {
@@ -23,6 +27,11 @@ export const authorizeUser = async (req: Request, res: Response) => {
     const user = await firebaseAuth.verifyIdToken(token.split(" ")[1]);
     const record = await firebaseAuth.getUser(user.uid);
     const email = record.providerData[0].email;
+
+    if (!email.endsWith("@kiit.ac.in") && process.env.ALLOW_KIIT_ONLY === 'true')
+      return res.send(
+        createResponse(EMAIL_NOT_ALLOWED, "Email not allowed", null)
+      );
     const userRecord = await UserModel.findOneAndUpdate(
       { uid: user.uid },
       { name: user.name },
