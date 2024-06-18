@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import { firebaseAuth } from "../lib/firebase-admin";
 import { createResponse } from "../../response";
 import {
+  EMAIL_NOT_ALLOWED,
   INTERNAL_SERVER_ERROR,
   INVALID_TOKEN,
   TOKEN_REQUIRED,
@@ -26,13 +27,14 @@ export const authToken = async (
       token = req.headers.authorization.split(" ")[1];
       const user: DecodedIdToken = await firebaseAuth.verifyIdToken(token);
       if (user) {
-        if (
-          user.email?.endsWith("@kiit.ac.in") &&
-          process.env.ALLOW_KIIT_ONLY === "true"
-        ) {
-          req.user = user;
-          next();
-        }
+        req.user = user;
+        if (process.env.ALLOW_KIIT_ONLY === "true") {
+          if (user.email?.endsWith("@kiit.ac.in")) next();
+          else
+            return res.send(
+              createResponse(EMAIL_NOT_ALLOWED, "Email Not Allowed", null)
+            );
+        } else next();
       } else
         return res.send(createResponse(INVALID_TOKEN, "Invalid Token", null));
     }
