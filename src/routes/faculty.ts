@@ -16,15 +16,15 @@ const router = express.Router();
 // HTML
 router.get("/view", renderGetAllFaculties);
 router.get("/view/:id", renderGetFacultyById);
-router.get("/create", renderCreateFaculty);
+// router.get("/create", renderCreateFaculty);
 router.get("/update/:id", renderUpdateFaculty);
-router.get("/delete/:id", renderDeleteFaculty);
+// router.get("/delete/:id", renderDeleteFaculty);
 
 // JSON
-router.get("/", getAllFaculty);
-router.post("/", createFaculty);
-router.get("/:id", getFacultyById);
+// router.get("/", getAllFaculty);
+// router.post("/", createFaculty);
+// router.get("/:id", getFacultyById);
 router.put("/:id", updateFaculty);
-router.delete("/:id/", deleteFaculty);
+// router.delete("/:id/", deleteFaculty);
 
 export default router;
