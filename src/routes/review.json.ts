@@ -5,19 +5,9 @@ import {
   getAllReview,
   updateReview,
   getFacultyReviewById,
-  renderCreateReview,
-  renderFacultyReviews,
-  renderGetAllReviews,
-  renderUpdateReview,
   getUserHistory,
 } from "../controllers/review";
 const router = express.Router();
-
-// HTML
-router.get("/all", renderGetAllReviews);
-router.get("/create", renderCreateReview);
-router.get("/:id/faculty", renderFacultyReviews);
-router.get("/:id/update", renderUpdateReview);
 
 // JSON
 router.get("/", getAllReview);

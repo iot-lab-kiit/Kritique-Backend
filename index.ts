@@ -15,8 +15,10 @@ const mongo =
 const corsOptions = { origin: "*", optionssuccessStatus: 200 };
 
 import userRoutes from "./src/routes/user";
-import reviewRoutes from "./src/routes/review";
-import facultyRoutes from "./src/routes/faculty";
+import reviewJSONRoutes from "./src/routes/review.json";
+import facultyJSONRoutes from "./src/routes/faculty.json";
+import facultyHTMLRoutes from "./src/routes/faculty.html";
+import reviewHTMLRoutes from "./src/routes/review.html";
 import { authToken } from "./src/middleware/auth";
 
 app.use(compress());
@@ -29,8 +31,11 @@ app.use(express.urlencoded({ extended: true }));
 app.set("views", path.join(__dirname, "/src/views"));
 
 app.use("/authenticate", userRoutes);
-app.use("/reviews", authToken, reviewRoutes);
-app.use("/faculties", authToken, facultyRoutes);
+app.use("/reviews", authToken, reviewJSONRoutes);
+app.use("/faculties", authToken, facultyJSONRoutes);
+
+app.use("/review", reviewHTMLRoutes);
+app.use("/faculty", facultyHTMLRoutes);
 
 app.use((req: Request, res: Response) =>
   res.send({ message: "Teacher Review APi. Coded with ❤️ by IoT Web Team." })

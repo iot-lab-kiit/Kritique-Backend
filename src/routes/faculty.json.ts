@@ -4,21 +4,9 @@ import {
   deleteFaculty,
   getAllFaculty,
   getFacultyById,
-  renderCreateFaculty,
-  renderDeleteFaculty,
-  renderGetAllFaculties,
-  renderGetFacultyById,
-  renderUpdateFaculty,
   updateFaculty,
 } from "../controllers/faculty";
 const router = express.Router();
-
-// HTML
-router.get("/view", renderGetAllFaculties);
-router.get("/view/:id", renderGetFacultyById);
-router.get("/create", renderCreateFaculty);
-router.get("/update/:id", renderUpdateFaculty);
-router.get("/delete/:id", renderDeleteFaculty);
 
 // JSON
 router.get("/", getAllFaculty);
