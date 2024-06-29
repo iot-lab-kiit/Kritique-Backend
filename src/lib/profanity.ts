@@ -7,5 +7,5 @@ badwords.add(en);
 badwords.add(hi);
 
 export const isProfane = (text: string): boolean => {
-  return badwords.check(text.replace(/ /g, ""));
+  return badwords.check(text);
 };
