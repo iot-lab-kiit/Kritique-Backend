@@ -16,6 +16,7 @@ import {
 import ReviewModel from "../model/review";
 import FacultyModel from "../model/faculty";
 import dotenv from "dotenv";
+import { randomName } from "../lib/random-names";
 
 dotenv.config();
 
@@ -37,7 +38,7 @@ export const authorizeUser = async (req: Request, res: Response) => {
       );
     const userRecord = await UserModel.findOneAndUpdate(
       { uid: user.uid },
-      { name: user.name },
+      { anon_name: user.name },
       { new: true }
     );
     if (userRecord)
@@ -50,7 +51,8 @@ export const authorizeUser = async (req: Request, res: Response) => {
       email,
       photoUrl: user.picture,
       role: role || "user",
-      name: user.name,
+      name: randomName(),
+      anon_name: user.name,
     });
     await newUser.save();
     return res.send(createResponse(CREATED, "User Created", newUser));
@@ -65,9 +67,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     const uid = req.params.id;
     if (!uid)
       return res.send(createResponse(INVALID_REQUEST, "UID is required", null));
-
     const userRecord = await UserModel.findOneAndDelete({ uid: uid });
-
     const userHistory = await ReviewModel.find({ createdBy: userRecord?._id });
     if (userHistory.length > 0) {
       for (let i = 0; i < userHistory.length; i++) {
