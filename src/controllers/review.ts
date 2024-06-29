@@ -11,6 +11,7 @@ import {
   FACULTY_NOT_FOUND,
   INTERNAL_SERVER_ERROR,
   INVALID_REQUEST,
+  PROFANITY_DETECTED,
   REVIEW_NOT_FOUND,
   SUCCESSFUL,
   UPDATED,
@@ -23,11 +24,9 @@ export const getUserHistory = async (req: Request, res: Response) => {
   try {
     const { limit, page } = req.query as unknown as reviewQuery;
     const id = req.params.id;
-    if (!id)
-      return res.send(createResponse(INVALID_REQUEST, "Id is required", null));
+    if (!id) return res.send(createResponse(INVALID_REQUEST, null));
     const user = await UserModel.findOne({ uid: id }).select("_id");
-    if (!user)
-      return res.send(createResponse(USER_NOT_FOUND, "User not found", null));
+    if (!user) return res.send(createResponse(USER_NOT_FOUND, null));
 
     const reviews = await ReviewModel.find({ createdBy: user?._id })
       .sort({ updatedAt: -1 })
@@ -35,14 +34,12 @@ export const getUserHistory = async (req: Request, res: Response) => {
       .limit(limit ? limit : 10)
       .skip(page ? page * (limit ? limit : 10) : 0);
     if (reviews.length === 0 && page == 0)
-      return res.send(
-        createResponse(REVIEW_NOT_FOUND, "Review not found", null)
-      );
+      return res.send(createResponse(REVIEW_NOT_FOUND, null));
 
-    return res.send(createResponse(SUCCESSFUL, "Reviews found", reviews));
+    return res.send(createResponse(SUCCESSFUL, reviews));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };
 
@@ -58,14 +55,12 @@ export const getAllReview = async (req: Request, res: Response) => {
       .populate(["createdBy"])
       .sort({ createdAt: -1 });
     if (reviews.length === 0 && page == 0)
-      return res.send(
-        createResponse(REVIEW_NOT_FOUND, "Review not found", null)
-      );
+      return res.send(createResponse(REVIEW_NOT_FOUND, null));
 
-    res.send(createResponse(SUCCESSFUL, "Review Found", reviews));
+    res.send(createResponse(SUCCESSFUL, reviews));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };
 
@@ -73,41 +68,21 @@ export const createReview = async (req: NewRequest, res: Response) => {
   try {
     const { createdFor, rating, feedback }: review = req.body;
     if (!createdFor || !rating || !feedback)
-      return res.send(
-        createResponse(
-          INVALID_REQUEST,
-          "CreateBy OR CreatedFor OR Rating OR Feedback are required",
-          null
-        )
-      );
+      return res.send(createResponse(INVALID_REQUEST, null));
     if (isProfane(feedback))
-      return res.send(
-        createResponse(INVALID_REQUEST, "Feedback contains bad words", null)
-      );
+      return res.send(createResponse(PROFANITY_DETECTED, null));
 
-    if (!req.user)
-      return res.send(createResponse(USER_NOT_FOUND, "User not found", null));
+    if (!req.user) return res.send(createResponse(USER_NOT_FOUND, null));
     const user = await UserModel.findOne({ uid: req.user.uid });
-    if (!user)
-      return res.send(createResponse(USER_NOT_FOUND, "User not found", null));
+    if (!user) return res.send(createResponse(USER_NOT_FOUND, null));
 
     const faculty = await FacultyModel.findById(createdFor);
-    if (!faculty)
-      return res.send(
-        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
-      );
+    if (!faculty) return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
     for (const reviewId of faculty.reviewList) {
       const review = await ReviewModel.findById(reviewId);
-      if (review && review.createdBy.equals(user._id)) {
-        return res.send(
-          createResponse(
-            ALREADY_REVIEWED,
-            "User already reviewed this faculty",
-            null
-          )
-        );
-      }
+      if (review && review.createdBy.equals(user._id))
+        return res.send(createResponse(ALREADY_REVIEWED, null));
     }
 
     const newReview = new ReviewModel({
@@ -137,14 +112,12 @@ export const createReview = async (req: NewRequest, res: Response) => {
       { returnOriginal: false }
     );
     if (!updatedFaculty)
-      return res.send(
-        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
-      );
+      return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
-    res.send(createResponse(CREATED, "Review Created", newReview));
+    res.send(createResponse(CREATED, newReview));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };
 
@@ -153,16 +126,10 @@ export const getFacultyReviewById = async (req: Request, res: Response) => {
     const { limit, page } = req.query as unknown as reviewQuery;
     const facultyId = req.params.facultyId;
 
-    if (!facultyId)
-      return res.send(
-        createResponse(INVALID_REQUEST, "Provide a facutly Id", null)
-      );
+    if (!facultyId) return res.send(createResponse(INVALID_REQUEST, null));
 
     const faculty = await FacultyModel.findById(facultyId);
-    if (!faculty)
-      return res.send(
-        createResponse(FACULTY_NOT_FOUND, "Faculty Not Found", null)
-      );
+    if (!faculty) return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
     const totalCount = await ReviewModel.countDocuments({
       createdFor: facultyId,
@@ -175,9 +142,7 @@ export const getFacultyReviewById = async (req: Request, res: Response) => {
       .sort({ createdAt: -1 });
 
     if (reviews.length === 0 && page == 0)
-      return res.send(
-        createResponse(REVIEW_NOT_FOUND, "Review Not Found", null)
-      );
+      return res.send(createResponse(REVIEW_NOT_FOUND, null));
 
     if (reviews) {
       faculty.reviewList = reviews.map((r) => r._id);
@@ -188,14 +153,12 @@ export const getFacultyReviewById = async (req: Request, res: Response) => {
       });
     }
     if (faculty.reviewList.length === 0 && page == 0)
-      return res.send(
-        createResponse(REVIEW_NOT_FOUND, "Review Not Found", null)
-      );
+      return res.send(createResponse(REVIEW_NOT_FOUND, null));
 
-    res.send(createResponse(SUCCESSFUL, "Faculty Found", faculty.reviewList));
+    res.send(createResponse(SUCCESSFUL, faculty.reviewList));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };
 
@@ -204,31 +167,15 @@ export const updateReview = async (req: Request, res: Response) => {
     const id = req.params.reviewId;
     const { rating, feedback }: review = req.body;
     if (!id || (!rating && !feedback))
-      return res.send(
-        createResponse(
-          INVALID_REQUEST,
-          "ID or Rating or Feedback is required",
-          null
-        )
-      );
+      return res.send(createResponse(INVALID_REQUEST, null));
 
     const review = await ReviewModel.findById(id);
-    if (!review)
-      return res.send(
-        createResponse(REVIEW_NOT_FOUND, "Review Not Found", null)
-      );
+    if (!review) return res.send(createResponse(REVIEW_NOT_FOUND, null));
 
     let oldRating = review.rating;
     if (rating) {
       if (rating >= 1.0 && rating <= 5.0) review.rating = rating;
-      else
-        return res.send(
-          createResponse(
-            INVALID_REQUEST,
-            "Rating should be between 1.0 and 5.0",
-            null
-          )
-        );
+      else return res.send(createResponse(INVALID_REQUEST, null));
     }
 
     if (feedback) review.feedback = feedback;
@@ -240,10 +187,7 @@ export const updateReview = async (req: Request, res: Response) => {
 
     const facId = review.createdFor.toString();
     const faculty = await FacultyModel.findById(facId);
-    if (!faculty)
-      return res.send(
-        createResponse(FACULTY_NOT_FOUND, "Faculty Not Found", null)
-      );
+    if (!faculty) return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
     if (rating) {
       let total = faculty.totalRatings;
@@ -262,31 +206,24 @@ export const updateReview = async (req: Request, res: Response) => {
       { new: true }
     );
 
-    res.send(createResponse(UPDATED, "Review Updated", newReview));
+    res.send(createResponse(UPDATED, newReview));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };
 
 export const deleteReview = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    if (!id)
-      return res.send(createResponse(INVALID_REQUEST, "Id is required", null));
+    if (!id) return res.send(createResponse(INVALID_REQUEST, null));
 
     const review = await ReviewModel.findById(id);
-    if (!review)
-      return res.send(
-        createResponse(REVIEW_NOT_FOUND, "Review not found", null)
-      );
+    if (!review) return res.send(createResponse(REVIEW_NOT_FOUND, null));
 
     // Get the faculty for which the review is being created and remove it from the list. And Update the faculty
     const faculty = await FacultyModel.findById(review.createdFor.toString());
-    if (!faculty)
-      return res.send(
-        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
-      );
+    if (!faculty) return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
     faculty.reviewList = faculty.reviewList.filter((r) => r.toString() !== id);
 
@@ -314,10 +251,10 @@ export const deleteReview = async (req: Request, res: Response) => {
     );
     await ReviewModel.findByIdAndDelete(id);
 
-    res.send(createResponse(DELETED, "Review Deleted", {}));
+    res.send(createResponse(DELETED, {}));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };
 

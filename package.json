@@ -1,6 +1,6 @@
 {
   "name": "IoT-Teacher-Review-Backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "index.js",
   "repository": "git@github.com:iot-lab-kiit/IoT-Teacher-Review-Backend.git",
   "author": "kpriyanshu2003 <az.priyanshu.rockstar@gmail.com>",

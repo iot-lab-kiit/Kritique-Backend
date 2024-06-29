@@ -23,8 +23,7 @@ dotenv.config();
 export const authorizeUser = async (req: Request, res: Response) => {
   try {
     const { token, role }: UserQuery = req.body;
-    if (!token)
-      return res.send(createResponse(TOKEN_REQUIRED, "Token required", null));
+    if (!token) return res.send(createResponse(TOKEN_REQUIRED, null));
     const user = await firebaseAuth.verifyIdToken(token.split(" ")[1]);
     const record = await firebaseAuth.getUser(user.uid);
     const email = record.providerData[0].email;
@@ -33,40 +32,35 @@ export const authorizeUser = async (req: Request, res: Response) => {
       !email.endsWith("@kiit.ac.in") &&
       process.env.ALLOW_KIIT_ONLY === "true"
     )
-      return res.send(
-        createResponse(EMAIL_NOT_ALLOWED, "Email not allowed", null)
-      );
-    const userRecord = await UserModel.findOneAndUpdate(
-      { uid: user.uid },
-      { anon_name: user.name },
-      { new: true }
-    );
-    if (userRecord)
-      return res.send(
-        createResponse(SUCCESSFUL, "User data found", userRecord)
-      );
+      return res.send(createResponse(EMAIL_NOT_ALLOWED, null));
+    const userRecord = await UserModel.findOne({ uid: user.uid });
+    // const userRecord = await UserModel.findOne(
+    //   { uid: user.uid },
+    //   { name: user.name },
+    //   { new: true }
+    // );
+    if (userRecord) return res.send(createResponse(SUCCESSFUL, userRecord));
 
     const newUser = new UserModel({
       uid: user.uid,
       email,
       photoUrl: user.picture,
       role: role || "user",
-      name: randomName(),
-      anon_name: user.name,
+      name: user.name,
+      anon_name: randomName(),
     });
     await newUser.save();
-    return res.send(createResponse(CREATED, "User Created", newUser));
+    return res.send(createResponse(CREATED, newUser));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
   try {
     const uid = req.params.id;
-    if (!uid)
-      return res.send(createResponse(INVALID_REQUEST, "UID is required", null));
+    if (!uid) return res.send(createResponse(INVALID_REQUEST, null));
     const userRecord = await UserModel.findOneAndDelete({ uid: uid });
     const userHistory = await ReviewModel.find({ createdBy: userRecord?._id });
     if (userHistory.length > 0) {
@@ -109,11 +103,11 @@ export const deleteUser = async (req: Request, res: Response) => {
 
     if (userRecord) {
       firebaseAuth.deleteUser(uid);
-      return res.send(createResponse(DELETED, "User Deleted", {}));
+      return res.send(createResponse(DELETED, {}));
     }
-    return res.send(createResponse(USER_NOT_FOUND, "User not Found", null));
+    return res.send(createResponse(USER_NOT_FOUND, null));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };

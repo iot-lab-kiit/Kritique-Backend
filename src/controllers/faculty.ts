@@ -25,13 +25,9 @@ export const getAllFaculty = async (req: Request, res: Response) => {
         .skip(page ? page * (limit ? limit : 10) : 0);
 
       if (faculties.length === 0 && page == 0)
-        return res.send(
-          createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
-        );
+        return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
-      return res.send(
-        createResponse(SUCCESSFUL, "Faculties fetched successfully", faculties)
-      );
+      return res.send(createResponse(SUCCESSFUL, faculties));
     }
 
     const faculties = await FacultyModel.find()
@@ -39,16 +35,12 @@ export const getAllFaculty = async (req: Request, res: Response) => {
       .limit(limit ? limit : 10)
       .skip(page ? page * (limit ? limit : 10) : 0);
     if (page == 0 && faculties.length === 0)
-      return res.send(
-        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
-      );
+      return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
-    res.send(
-      createResponse(SUCCESSFUL, "Faculties fetched successfully", faculties)
-    );
+    res.send(createResponse(SUCCESSFUL, faculties));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };
 
@@ -56,21 +48,15 @@ export const createFaculty = async (req: Request, res: Response) => {
   try {
     const { name, experience, photoUrl } = req.body;
     if (!name || !experience || !photoUrl)
-      return res.send(
-        createResponse(
-          INVALID_REQUEST,
-          "Name, experience, and photoUrl are required",
-          null
-        )
-      );
+      return res.send(createResponse(INVALID_REQUEST, null));
 
     const faculty = new FacultyModel({ name, experience, photoUrl });
     await faculty.save();
 
-    res.send(createResponse(CREATED, "Faculty created successfully", faculty));
+    res.send(createResponse(CREATED, faculty));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };
 
@@ -79,20 +65,18 @@ export const getFacultyById = async (req: Request, res: Response) => {
     const { limit, page } = req.query as unknown as facultyQuery;
     const id = req.params.id;
     if (!id || id === ":id")
-      return res.send(createResponse(INVALID_REQUEST, "Id is required", null));
+      return res.send(createResponse(INVALID_REQUEST, null));
 
     const faculty = await FacultyModel.findById(id)
       .limit(limit ? limit : 10)
       .skip(page ? page * (limit ? limit : 10) : 0);
     if (!faculty && page == 0)
-      return res.send(
-        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
-      );
+      return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
-    res.send(createResponse(SUCCESSFUL, "Faculty found", faculty));
+    res.send(createResponse(SUCCESSFUL, faculty));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };
 
@@ -100,37 +84,23 @@ export const updateFaculty = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     if (!id || id === ":id")
-      return res.send(createResponse(INVALID_REQUEST, "Id is required", null));
+      return res.send(createResponse(INVALID_REQUEST, null));
 
     const { name, experience, photoUrl } = req.body;
     if (!name || !experience || !photoUrl)
-      return res.send(
-        createResponse(
-          INVALID_REQUEST,
-          "Name, experience, and photoUrl are required",
-          null
-        )
-      );
+      return res.send(createResponse(INVALID_REQUEST, null));
 
     const faculty = await FacultyModel.findById(id);
-    if (!faculty)
-      return res.send(
-        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
-      );
+    if (!faculty) return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
     const facultyData = await FacultyModel.findByIdAndUpdate(
       id,
       { name, experience, photoUrl },
       { new: true }
     );
-    if (!facultyData)
-      return res.send(
-        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
-      );
+    if (!facultyData) return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
-    res.send(
-      createResponse(UPDATED, "Faculty updated successfully", facultyData)
-    );
+    res.send(createResponse(UPDATED, facultyData));
   } catch (e: any) {
     console.error(e);
     res.send({ message: e.message });
@@ -141,20 +111,17 @@ export const deleteFaculty = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     if (!id || id === ":id")
-      return res.send(createResponse(INVALID_REQUEST, "Id is required", null));
+      return res.send(createResponse(INVALID_REQUEST, null));
 
     const faculty = await FacultyModel.findById(id);
-    if (!faculty)
-      return res.send(
-        createResponse(FACULTY_NOT_FOUND, "Faculty not found", null)
-      );
+    if (!faculty) return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
     await FacultyModel.findByIdAndDelete(id);
 
-    res.send(createResponse(DELETED, "Faculty deleted successfully", {}));
+    res.send(createResponse(DELETED, {}));
   } catch (error: any) {
     console.log(error);
-    return res.send(createResponse(INTERNAL_SERVER_ERROR, error.message, null));
+    return res.send(createResponse(INTERNAL_SERVER_ERROR, null));
   }
 };
 

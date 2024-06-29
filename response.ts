@@ -1,7 +1,6 @@
 export const createResponse = (
-  status: number,
-  message: string | null,
+  status: { CODE: number; MESSAGE: string },
   data: any | null
 ) => {
-  return { status, message, data };
+  return { status: status.CODE, message: status.MESSAGE, data };
 };
