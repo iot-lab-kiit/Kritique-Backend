@@ -19,9 +19,7 @@ export const addAnonName = async () => {
 
 async function connectToMongoDB() {
   try {
-    await mongoose.connect(
-      "mongodb+srv://iotlab:LmR3JRqZVXxXU9He@cluster0.kqgvths.mongodb.net/production?retryWrites=true&w=majority"
-    );
+    await mongoose.connect("");
     console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
@@ -46,9 +44,8 @@ async function SwitchNameAnon() {
 
 (async () => {
   await connectToMongoDB();
-  //   await addAnonName();
-  //   await SwitchNameAnon();
-  await SwitchNameAnon();
+  // await addAnonName();
+  // await SwitchNameAnon();
   console.log("Done");
   process.exit(0);
 })();
