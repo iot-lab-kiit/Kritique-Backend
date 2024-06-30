@@ -34,11 +34,11 @@ async function insertFaculty(url: string) {
   }
 }
 
-(async () => {
-  await connectToMongoDB();
-  const url =
-    "https://opensheet.elk.sh/1zlF9WLhkZdOiBCqm0kLatbbu1cu8qjfcMC8cldE9mvo/Sheet1";
-  await insertFaculty(url);
-  console.log("Done");
-  process.exit(0);
-})();
+// (async () => {
+//   await connectToMongoDB();
+//   const url =
+//     "https://opensheet.elk.sh/1zlF9WLhkZdOiBCqm0kLatbbu1cu8qjfcMC8cldE9mvo/Sheet1";
+//   await insertFaculty(url);
+//   console.log("Done");
+//   process.exit(0);
+// })();

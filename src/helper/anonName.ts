@@ -42,10 +42,10 @@ async function SwitchNameAnon() {
   }
 }
 
-(async () => {
-  await connectToMongoDB();
-  // await addAnonName();
-  // await SwitchNameAnon();
-  console.log("Done");
-  process.exit(0);
-})();
+// (async () => {
+//   await connectToMongoDB();
+//   // await addAnonName();
+//   // await SwitchNameAnon();
+//   console.log("Done");
+//   process.exit(0);
+// })();

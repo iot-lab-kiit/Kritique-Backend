@@ -34,7 +34,11 @@ export const authToken = async (
       if (user) {
         req.user = user;
         if (process.env.ALLOW_KIIT_ONLY === "true") {
-          if (user.email?.endsWith("@kiit.ac.in")) next();
+          if (
+            user.email?.split("@")[1] === "kiit.ac.in" &&
+            /^\d+$/.test(user.email?.split("@")[0])
+          )
+            next();
           else return res.send(createResponse(EMAIL_NOT_ALLOWED, null));
         } else next();
       } else return res.send(createResponse(INVALID_TOKEN, null));
