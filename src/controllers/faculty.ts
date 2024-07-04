@@ -20,7 +20,7 @@ export const getAllFaculty = async (req: Request, res: Response) => {
       const faculties = await FacultyModel.find({
         name: { $regex: name.trim() as string, $options: "i" },
       })
-        .select("-reviewList")
+        .select("-reviewList -createdAt -updatedAt -__v")
         .limit(limit ? limit : 10)
         .skip(page ? page * (limit ? limit : 10) : 0);
 
@@ -31,7 +31,7 @@ export const getAllFaculty = async (req: Request, res: Response) => {
     }
 
     const faculties = await FacultyModel.find()
-      .select("-reviewList")
+      .select("-reviewList -createdAt -updatedAt -__v")
       .limit(limit ? limit : 10)
       .skip(page ? page * (limit ? limit : 10) : 0);
     if (page == 0 && faculties.length === 0)
@@ -69,7 +69,8 @@ export const getFacultyById = async (req: Request, res: Response) => {
 
     const faculty = await FacultyModel.findById(id)
       .limit(limit ? limit : 10)
-      .skip(page ? page * (limit ? limit : 10) : 0);
+      .skip(page ? page * (limit ? limit : 10) : 0)
+      .select("-reviewList -createdAt -updatedAt -__v");
     if (!faculty && page == 0)
       return res.send(createResponse(FACULTY_NOT_FOUND, null));
 

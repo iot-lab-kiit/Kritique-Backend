@@ -30,9 +30,14 @@ export const getUserHistory = async (req: Request, res: Response) => {
 
     const reviews = await ReviewModel.find({ createdBy: user?._id })
       .sort({ updatedAt: -1 })
-      .populate("createdFor")
+      .populate({
+        path: "createdFor",
+        select:
+          "-createdAt -updatedAt -__v -reviewList -avgRating -totalRatings",
+      })
       .limit(limit ? limit : 10)
-      .skip(page ? page * (limit ? limit : 10) : 0);
+      .skip(page ? page * (limit ? limit : 10) : 0)
+      .select("-updatedAt -__v -status -createdBy");
     if (reviews.length === 0 && page == 0)
       return res.send(createResponse(REVIEW_NOT_FOUND, null));
 
@@ -52,8 +57,12 @@ export const getAllReview = async (req: Request, res: Response) => {
       .limit(limit ? limit : 10)
       .skip(page ? page * (limit ? limit : 10) : 0)
       .select("-createdFor")
-      .populate(["createdBy"])
-      .sort({ createdAt: -1 });
+      .populate({
+        path: "createdBy",
+        select: "-createdAt -updatedAt -__v -role -status",
+      })
+      .sort({ createdAt: -1 })
+      .select("-updatedAt -__v -status");
     if (reviews.length === 0 && page == 0)
       return res.send(createResponse(REVIEW_NOT_FOUND, null));
 
@@ -148,8 +157,11 @@ export const getFacultyReviewById = async (req: Request, res: Response) => {
       faculty.reviewList = reviews.map((r) => r._id);
       await faculty.populate({
         path: "reviewList",
-        populate: { path: "createdBy" },
-        select: "-createdFor -updatedAt -__v",
+        populate: {
+          path: "createdBy",
+          select: "-role -updatedAt -createdAt -__v -status",
+        },
+        select: "-createdFor -updatedAt -__v -status",
       });
     }
     if (faculty.reviewList.length === 0 && page == 0)

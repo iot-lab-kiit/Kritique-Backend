@@ -4,7 +4,7 @@ import hi from "../constants/profanity-dict-hi.json";
 
 const badwords = new BadWordsNext();
 badwords.add(en);
-// badwords.add(hi);
+badwords.add(hi);
 
 export const isProfane = (text: string): boolean => {
   return badwords.check(text);

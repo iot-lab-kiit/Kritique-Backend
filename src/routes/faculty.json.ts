@@ -10,9 +10,9 @@ const router = express.Router();
 
 // JSON
 router.get("/", getAllFaculty);
-router.post("/", createFaculty);
+// router.post("/", createFaculty);
 router.get("/:id", getFacultyById);
-router.put("/:id", updateFaculty);
-router.delete("/:id/", deleteFaculty);
+// router.put("/:id", updateFaculty);
+// router.delete("/:id/", deleteFaculty);
 
 export default router;
