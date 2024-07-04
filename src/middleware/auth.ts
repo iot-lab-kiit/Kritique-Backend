@@ -22,9 +22,8 @@ export const authToken = async (
 ) => {
   try {
     let token;
-    if (req.headers.version)
-      if (req.headers.version !== process.env.APP_VERSION)
-        return res.send(createResponse(VERSION_MISMATCH, null));
+    if (req.headers.version !== process.env.APP_VERSION)
+      return res.send(createResponse(VERSION_MISMATCH, null));
     if (process.env.ACCESS_TOKEN_DISABLED === "true") next();
     else {
       if (!req.headers.authorization)
