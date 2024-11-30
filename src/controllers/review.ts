@@ -17,7 +17,7 @@ import {
   UPDATED,
   USER_NOT_FOUND,
 } from "../constants/statusCode";
-import { isProfane } from "../lib/profanity";
+// import { isProfane } from "../lib/profanity";
 import { NewRequest } from "../@types/express";
 
 export const getUserHistory = async (req: Request, res: Response) => {
@@ -78,8 +78,8 @@ export const createReview = async (req: NewRequest, res: Response) => {
     const { createdFor, rating, feedback }: review = req.body;
     if (!createdFor || !rating || !feedback)
       return res.send(createResponse(INVALID_REQUEST, null));
-    if (isProfane(feedback))
-      return res.send(createResponse(PROFANITY_DETECTED, null));
+    // if (isProfane(feedback))
+    //   return res.send(createResponse(PROFANITY_DETECTED, null));
 
     if (!req.user) return res.send(createResponse(USER_NOT_FOUND, null));
     const user = await UserModel.findOne({ uid: req.user.uid });
