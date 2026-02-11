@@ -18,11 +18,14 @@ dotenv.config();
 export const authToken = async (
   req: NewRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     let token;
-    if (req.headers.version !== process.env.APP_VERSION)
+    if (
+      process.env.DISABLE_APP_VERSION === "true" &&
+      req.headers.version !== process.env.APP_VERSION
+    )
       return res.send(createResponse(VERSION_MISMATCH, null));
     if (process.env.ACCESS_TOKEN_DISABLED === "true") next();
     else {
