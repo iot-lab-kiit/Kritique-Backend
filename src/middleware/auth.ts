@@ -23,7 +23,7 @@ export const authToken = async (
   try {
     let token;
     if (
-      process.env.DISABLE_APP_VERSION === "true" &&
+      process.env.ENFORCE_APP_VERSION === "true" &&
       req.headers.version !== process.env.APP_VERSION
     )
       return res.send(createResponse(VERSION_MISMATCH, null));
