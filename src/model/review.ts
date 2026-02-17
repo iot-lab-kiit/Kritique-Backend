@@ -8,7 +8,7 @@ const reviewSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 1.0,
-      max: 5.0,
+      max: 555.0,
       validate: {
         validator: Number.isFinite,
         message: "{VALUE} is not in the range 1.0 - 5.0",
