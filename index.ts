@@ -15,6 +15,7 @@ const mongo =
 const corsOptions = { origin: "*", optionssuccessStatus: 200 };
 
 import userRoutes from "./src/routes/user";
+import waitListRoutes from "./src/routes/waitlist";
 import reviewJSONRoutes from "./src/routes/review.json";
 import facultyJSONRoutes from "./src/routes/faculty.json";
 import facultyHTMLRoutes from "./src/routes/faculty.html";
@@ -36,6 +37,8 @@ app.use("/faculties", authToken, facultyJSONRoutes);
 
 app.use("/review", reviewHTMLRoutes);
 app.use("/faculty", facultyHTMLRoutes);
+
+app.use("/waitlist", authToken, waitListRoutes);
 
 app.use((req: Request, res: Response) =>
   res.send({ message: "Teacher Review APi. Coded with ❤️ by IoT Web Team." })
