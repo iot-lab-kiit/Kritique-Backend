@@ -13,7 +13,7 @@ const router = express.Router();
 router.get("/", getAllReview);
 router.post("/", createReview);
 router.get("/:facultyId", getFacultyReviewById);
-// router.put("/:reviewId", updateReview);
+router.put("/:reviewId", updateReview);
 router.delete("/:id", deleteReview);
 router.get("/:id/history", getUserHistory);
 

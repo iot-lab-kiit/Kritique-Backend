@@ -48,6 +48,7 @@ export const authorizeUser = async (req: Request, res: Response) => {
       role: role || "user",
       name: user.name,
       anon_name: randomName(),
+      waitList: [],
     });
     await newUser.save();
     return res.send(createResponse(CREATED, newUser));
