@@ -10,9 +10,9 @@ import {
 import { NewRequest } from "../@types/express";
 
 /**
- * Get User Waitlist
+ * Get User bookmarks
  */
-export const getWaitList = async (req: NewRequest, res: Response) => {
+export const getBookmark = async (req: NewRequest, res: Response) => {
   try {
     if (!req.user?.uid) {
       return res.send(createResponse(INVALID_REQUEST, null));
@@ -20,18 +20,16 @@ export const getWaitList = async (req: NewRequest, res: Response) => {
 
     const user = await UserModel.findOne(
       { uid: req.user.uid },
-      { waitList: 1 } // only fetch waitList field
+      { bookmark: 1 }, // only fetch bookmark field
     );
 
     if (!user) {
       return res.send(createResponse(USER_NOT_FOUND, null));
     }
 
-    return res.send(
-      createResponse(SUCCESSFUL, user.waitList || [])
-    );
+    return res.send(createResponse(SUCCESSFUL, user.bookmark || []));
   } catch (error: any) {
-    console.error("getWaitList error:", error);
+    console.error("getBookmark error:", error);
     return res.send(createResponse(INVALID_REQUEST, null));
   }
 };
@@ -39,7 +37,7 @@ export const getWaitList = async (req: NewRequest, res: Response) => {
 /**
  * Add Item To Waitlist
  */
-export const addToWaitList = async (req: NewRequest, res: Response) => {
+export const addToBookmark = async (req: NewRequest, res: Response) => {
   try {
     const { fic } = req.body;
 
@@ -53,19 +51,17 @@ export const addToWaitList = async (req: NewRequest, res: Response) => {
 
     const updated = await UserModel.findOneAndUpdate(
       { uid: req.user.uid },
-      { $addToSet: { waitList: fic } }, // prevents duplicates
-      { new: true }
+      { $addToSet: { bookmark: fic } }, // prevents duplicates
+      { new: true },
     );
 
     if (!updated) {
       return res.send(createResponse(USER_NOT_FOUND, null));
     }
 
-    return res.send(
-      createResponse(CREATED, { message: "Added to waitlist" })
-    );
+    return res.send(createResponse(CREATED, { message: "Added to waitlist" }));
   } catch (error: any) {
-    console.error("addToWaitList error:", error);
+    console.error("addToBookmark error:", error);
     return res.send(createResponse(INVALID_REQUEST, null));
   }
 };
@@ -73,7 +69,7 @@ export const addToWaitList = async (req: NewRequest, res: Response) => {
 /**
  * Remove Item From Waitlist
  */
-export const removeFromWaitList = async (req: NewRequest, res: Response) => {
+export const removeFromBookmark = async (req: NewRequest, res: Response) => {
   try {
     const { fic } = req.body;
 
@@ -87,19 +83,17 @@ export const removeFromWaitList = async (req: NewRequest, res: Response) => {
 
     const updated = await UserModel.findOneAndUpdate(
       { uid: req.user.uid },
-      { $pull: { waitList: fic } }, // removes matching value
-      { new: true }
+      { $pull: { bookmark: fic } }, // removes matching value
+      { new: true },
     );
 
     if (!updated) {
       return res.send(createResponse(USER_NOT_FOUND, null));
     }
 
-    return res.send(
-      createResponse(SUCCESSFUL, updated.waitList)
-    );
+    return res.send(createResponse(SUCCESSFUL, updated.bookmark));
   } catch (error: any) {
-    console.error("removeFromWaitList error:", error);
+    console.error("removeFromBookmark error:", error);
     return res.send(createResponse(INVALID_REQUEST, null));
   }
 };
