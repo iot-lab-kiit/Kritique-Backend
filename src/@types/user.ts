@@ -6,7 +6,7 @@ export interface User {
   photoUrl?: string | null;
   role?: "admin" | "user";
   status?: boolean;
-  waitList?: string[];
+  bookmark: string[];
 }
 
 export interface UserQuery {
