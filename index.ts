@@ -15,7 +15,7 @@ const mongo =
 const corsOptions = { origin: "*", optionssuccessStatus: 200 };
 
 import userRoutes from "./src/routes/user";
-import waitListRoutes from "./src/routes/waitlist";
+import bookmarkRoutes from "./src/routes/bookmark";
 import reviewJSONRoutes from "./src/routes/review.json";
 import facultyJSONRoutes from "./src/routes/faculty.json";
 import facultyHTMLRoutes from "./src/routes/faculty.html";
@@ -38,15 +38,15 @@ app.use("/faculties", authToken, facultyJSONRoutes);
 app.use("/review", reviewHTMLRoutes);
 app.use("/faculty", facultyHTMLRoutes);
 
-app.use("/waitlist", authToken, waitListRoutes);
+app.use("/bookmark", authToken, bookmarkRoutes);
 
 app.use((req: Request, res: Response) =>
-  res.send({ message: "Teacher Review APi. Coded with ❤️ by IoT Web Team." })
+  res.send({ message: "Teacher Review APi. Coded with ❤️ by IoT Web Team." }),
 );
 
 mongoose
   .connect(mongo)
   .then(() =>
-    app.listen(port, () => console.log(`Server is running on port ${port}`))
+    app.listen(port, () => console.log(`Server is running on port ${port}`)),
   )
   .catch((err) => console.log(err));

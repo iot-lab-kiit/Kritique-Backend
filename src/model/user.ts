@@ -10,9 +10,9 @@ const UserSchema = new mongoose.Schema<User>(
     photoUrl: { type: String, default: null },
     role: { type: String, enum: ["admin", "user"], default: "user" },
     status: { type: Boolean, default: false }, // false : not verified, true : verified
-    waitList: { type: [String], default: [] }
+    bookmark: { type: [String], default: [] },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("User", UserSchema);
