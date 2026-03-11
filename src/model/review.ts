@@ -11,7 +11,7 @@ const reviewSchema = new mongoose.Schema(
       max: 555.0,
       validate: {
         validator: Number.isFinite,
-        message: "{VALUE} is not in the range 1.0 - 5.0",
+        message: "{VALUE} is not in the range 1.0 - 555.0",
       },
     },
     feedback: { type: String },
@@ -21,7 +21,7 @@ const reviewSchema = new mongoose.Schema(
       default: "not validated",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Review", reviewSchema);
