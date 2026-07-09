@@ -15,6 +15,8 @@ import {
 } from "../constants/statusCode";
 import ReviewModel from "../model/review";
 import FacultyModel from "../model/faculty";
+import FacultyReactionModel from "../model/facultyReaction";
+import ReviewVoteModel from "../model/reviewVote";
 import dotenv from "dotenv";
 import { randomName } from "../lib/random-names";
 
@@ -63,6 +65,12 @@ export const deleteUser = async (req: Request, res: Response) => {
     const uid = req.params.id;
     if (!uid) return res.send(createResponse(INVALID_REQUEST, null));
     const userRecord = await UserModel.findOneAndDelete({ uid: uid });
+
+    if (userRecord) {
+      await FacultyReactionModel.deleteMany({ user: userRecord._id });
+      await ReviewVoteModel.deleteMany({ user: userRecord._id });
+    }
+
     const userHistory = await ReviewModel.find({ createdBy: userRecord?._id });
     if (userHistory.length > 0) {
       for (let i = 0; i < userHistory.length; i++) {
@@ -98,6 +106,7 @@ export const deleteUser = async (req: Request, res: Response) => {
           { returnOriginal: false }
         );
 
+        await ReviewVoteModel.deleteMany({ review: userHistory[i]._id });
         await ReviewModel.findByIdAndDelete(userHistory[i]._id);
       }
     }

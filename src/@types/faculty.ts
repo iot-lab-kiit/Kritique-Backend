@@ -5,6 +5,11 @@ export interface Faculty {
   photoUrl?: string;
   avgRating?: number;
   totalRatings?: number;
+  avgTeaching?: number;
+  avgBehaviour?: number;
+  avgMarks?: number;
+  likes?: number;
+  dislikes?: number;
   reviewList?: string[];
 }
 
@@ -12,4 +17,5 @@ export interface facultyQuery {
   limit?: number;
   page?: number;
   name?: string;
+  ids?: string;
 }
