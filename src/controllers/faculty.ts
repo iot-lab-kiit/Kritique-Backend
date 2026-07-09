@@ -1,20 +1,36 @@
 import { Request, Response } from "express";
 import FacultyModel from "../model/faculty";
+import FacultyReactionModel from "../model/facultyReaction";
+import UserModel from "../model/user";
 import { facultyQuery } from "../@types/faculty";
 import { createResponse } from "../../response";
 import {
+  ALREADY_REACTED,
   CREATED,
   DELETED,
   FACULTY_NOT_FOUND,
   INTERNAL_SERVER_ERROR,
   INVALID_REQUEST,
+  REACTION_NOT_FOUND,
+  REACTION_REMOVED,
   SUCCESSFUL,
   UPDATED,
+  USER_NOT_FOUND,
 } from "../constants/statusCode";
+import { NewRequest } from "../@types/express";
 
 export const getAllFaculty = async (req: Request, res: Response) => {
   try {
-    const { limit, page, name } = req.query as unknown as facultyQuery;
+    const { limit, page, name, ids } = req.query as unknown as facultyQuery;
+
+    if (ids) {
+      const idArray = ids.split(",").map((id) => id.trim());
+      const faculties = await FacultyModel.find({ _id: { $in: idArray } })
+        .select("-reviewList -createdAt -updatedAt -__v");
+      if (faculties.length === 0)
+        return res.send(createResponse(FACULTY_NOT_FOUND, null));
+      return res.send(createResponse(SUCCESSFUL, faculties));
+    }
 
     if (name) {
       const faculties = await FacultyModel.find({

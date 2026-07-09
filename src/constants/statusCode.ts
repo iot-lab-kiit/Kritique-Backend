@@ -68,3 +68,34 @@ export const VERSION_MISMATCH = {
   CODE: 405,
   MESSAGE: "New Update Found! Please update the app.",
 };
+
+// Reaction / Vote codes
+export const ALREADY_REACTED = {
+  CODE: 210,
+  MESSAGE: "Reaction updated.",
+};
+
+export const REACTION_REMOVED = {
+  CODE: 211,
+  MESSAGE: "Reaction removed.",
+};
+
+export const ALREADY_VOTED = {
+  CODE: 212,
+  MESSAGE: "Vote updated.",
+};
+
+export const VOTE_REMOVED = {
+  CODE: 213,
+  MESSAGE: "Vote removed.",
+};
+
+export const REACTION_NOT_FOUND = {
+  CODE: 214,
+  MESSAGE: "No reaction found to remove.",
+};
+
+export const VOTE_NOT_FOUND = {
+  CODE: 215,
+  MESSAGE: "No vote found to remove.",
+};

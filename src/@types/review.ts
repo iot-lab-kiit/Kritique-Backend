@@ -3,6 +3,7 @@ export interface reviewQuery {
   page?: number;
   facultyId: string;
   createdBy?: string;
+  sort?: string;
 }
 
 export interface review {
@@ -10,6 +11,9 @@ export interface review {
   createdBy: string;
   createdFor: string;
   rating: number;
+  teachingRating?: number;
+  behaviourRating?: number;
+  marksRating?: number;
   feedback: string;
   status?: "validated" | "not validated";
   createdAt?: Date;

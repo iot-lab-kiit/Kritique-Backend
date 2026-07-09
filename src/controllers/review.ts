@@ -2,10 +2,12 @@ import UserModel from "../model/user";
 import ReviewModel from "../model/review";
 import { Request, Response } from "express";
 import FacultyModel from "../model/faculty";
+import ReviewVoteModel from "../model/reviewVote";
 import { review, reviewQuery } from "../@types/review";
 import { createResponse } from "../../response";
 import {
   ALREADY_REVIEWED,
+  ALREADY_VOTED,
   CREATED,
   DELETED,
   FACULTY_NOT_FOUND,
@@ -16,9 +18,43 @@ import {
   SUCCESSFUL,
   UPDATED,
   USER_NOT_FOUND,
+  VOTE_NOT_FOUND,
+  VOTE_REMOVED,
 } from "../constants/statusCode";
 // import { isProfane } from "../lib/profanity";
 import { NewRequest } from "../@types/express";
+
+async function recomputeCategoryAverages(facultyId: string) {
+  const reviews = await ReviewModel.find({ createdFor: facultyId });
+
+  let teachingSum = 0,
+    teachingCount = 0;
+  let behaviourSum = 0,
+    behaviourCount = 0;
+  let marksSum = 0,
+    marksCount = 0;
+
+  for (const r of reviews) {
+    if (r.teachingRating != null) {
+      teachingSum += r.teachingRating;
+      teachingCount++;
+    }
+    if (r.behaviourRating != null) {
+      behaviourSum += r.behaviourRating;
+      behaviourCount++;
+    }
+    if (r.marksRating != null) {
+      marksSum += r.marksRating;
+      marksCount++;
+    }
+  }
+
+  await FacultyModel.findByIdAndUpdate(facultyId, {
+    avgTeaching: teachingCount > 0 ? teachingSum / teachingCount : 0,
+    avgBehaviour: behaviourCount > 0 ? behaviourSum / behaviourCount : 0,
+    avgMarks: marksCount > 0 ? marksSum / marksCount : 0,
+  });
+}
 
 export const getUserHistory = async (req: Request, res: Response) => {
   try {
@@ -75,7 +111,14 @@ export const getAllReview = async (req: Request, res: Response) => {
 
 export const createReview = async (req: NewRequest, res: Response) => {
   try {
-    const { createdFor, rating, feedback }: review = req.body;
+    const {
+      createdFor,
+      rating,
+      teachingRating,
+      behaviourRating,
+      marksRating,
+      feedback,
+    }: review = req.body;
     if (!createdFor || !rating || !feedback)
       return res.send(createResponse(INVALID_REQUEST, null));
     // if (isProfane(feedback))
@@ -98,6 +141,9 @@ export const createReview = async (req: NewRequest, res: Response) => {
       createdBy: user._id,
       createdFor,
       rating,
+      teachingRating: teachingRating ?? null,
+      behaviourRating: behaviourRating ?? null,
+      marksRating: marksRating ?? null,
       feedback,
     });
     await newReview.save();
@@ -123,6 +169,8 @@ export const createReview = async (req: NewRequest, res: Response) => {
     if (!updatedFaculty)
       return res.send(createResponse(FACULTY_NOT_FOUND, null));
 
+    await recomputeCategoryAverages(createdFor);
+
     res.send(createResponse(CREATED, newReview));
   } catch (error: any) {
     console.log(error);
@@ -132,7 +180,7 @@ export const createReview = async (req: NewRequest, res: Response) => {
 
 export const getFacultyReviewById = async (req: Request, res: Response) => {
   try {
-    const { limit, page } = req.query as unknown as reviewQuery;
+    const { limit, page, sort } = req.query as unknown as reviewQuery;
     const facultyId = req.params.facultyId;
 
     if (!facultyId) return res.send(createResponse(INVALID_REQUEST, null));
@@ -145,10 +193,13 @@ export const getFacultyReviewById = async (req: Request, res: Response) => {
     });
     faculty.totalRatings = totalCount;
 
+    const sortOption =
+      sort === "top" ? { upvotes: -1, createdAt: -1 } : { createdAt: -1 };
+
     const reviews = await ReviewModel.find({ createdFor: facultyId })
       .limit(limit ? limit : 10)
       .skip(page ? page * (limit ? limit : 10) : 0)
-      .sort({ createdAt: -1 });
+      .sort(sortOption);
 
     if (reviews.length === 0 && page == 0)
       return res.send(createResponse(REVIEW_NOT_FOUND, null));
@@ -177,8 +228,14 @@ export const getFacultyReviewById = async (req: Request, res: Response) => {
 export const updateReview = async (req: Request, res: Response) => {
   try {
     const id = req.params.reviewId;
-    const { rating, feedback }: review = req.body;
-    if (!id || (!rating && !feedback))
+    const {
+      rating,
+      teachingRating,
+      behaviourRating,
+      marksRating,
+      feedback,
+    }: review = req.body;
+    if (!id || (!rating && !feedback && teachingRating == null && behaviourRating == null && marksRating == null))
       return res.send(createResponse(INVALID_REQUEST, null));
 
     const review = await ReviewModel.findById(id);
@@ -190,10 +247,29 @@ export const updateReview = async (req: Request, res: Response) => {
       else return res.send(createResponse(INVALID_REQUEST, null));
     }
 
+    if (teachingRating != null) {
+      if (teachingRating >= 1.0 && teachingRating <= 5.0) review.teachingRating = teachingRating;
+      else return res.send(createResponse(INVALID_REQUEST, null));
+    }
+    if (behaviourRating != null) {
+      if (behaviourRating >= 1.0 && behaviourRating <= 5.0) review.behaviourRating = behaviourRating;
+      else return res.send(createResponse(INVALID_REQUEST, null));
+    }
+    if (marksRating != null) {
+      if (marksRating >= 1.0 && marksRating <= 5.0) review.marksRating = marksRating;
+      else return res.send(createResponse(INVALID_REQUEST, null));
+    }
+
     if (feedback) review.feedback = feedback;
     const newReview = await ReviewModel.findByIdAndUpdate(
       id,
-      { rating: review.rating, feedback: review.feedback },
+      {
+        rating: review.rating,
+        teachingRating: review.teachingRating,
+        behaviourRating: review.behaviourRating,
+        marksRating: review.marksRating,
+        feedback: review.feedback,
+      },
       { timestamps: true }
     );
 
@@ -217,6 +293,8 @@ export const updateReview = async (req: Request, res: Response) => {
       },
       { new: true }
     );
+
+    await recomputeCategoryAverages(facId);
 
     res.send(createResponse(UPDATED, newReview));
   } catch (error: any) {
@@ -261,7 +339,10 @@ export const deleteReview = async (req: Request, res: Response) => {
       },
       { returnOriginal: false }
     );
+    await ReviewVoteModel.deleteMany({ review: id });
     await ReviewModel.findByIdAndDelete(id);
+
+    await recomputeCategoryAverages(review.createdFor.toString());
 
     res.send(createResponse(DELETED, {}));
   } catch (error: any) {
